@@ -1,4 +1,5 @@
 package com.flight_app.admin_service.entity;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -12,48 +13,25 @@ public class Airline {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
-    private String logoUrl;
-    private String contactNumber;
-    private String status;
+    @Column(name = "is_blocked")
+    private Boolean isBlocked;
     
     public Airline() {
     }
     
+    public Long getId() {
+    	return id;
+    }
     public String getName() {
 		return name;
 	}
-
 	public void setName(String name) {
 		this.name = name;
 	}
-
-	public String getLogoUrl() {
-		return logoUrl;
-	}
-
-	public void setLogoUrl(String logoUrl) {
-		this.logoUrl = logoUrl;
-	}
-
-	public String getContactNumber() {
-		return contactNumber;
-	}
-
-	public void setContactNumber(String contactNumber) {
-		this.contactNumber = contactNumber;
-	}
-
-	public String getStatus() {
-		return status;
-	}
-
-	public void setStatus(String status) {
-		this.status = status;
-	}
-
-	public Long getId() {
-		return id;
-	}
-
-    
+    public Boolean getIsBlocked() { 
+    	return isBlocked; 
+    	}
+    public void setIsBlocked(Boolean isBlocked) {
+    	this.isBlocked = isBlocked; 
+    	}    
 }
