@@ -8,10 +8,11 @@ import com.flightapp.ticket_service.repository.TicketRepository;
 
 @Service
 public class TicketService {
-@Autowired
-TicketRepository ticketRepository;
-public Booking getTicketByPnr(String pnr) {
-	return ticketRepository.findByPnr(pnr).orElseThrow(
-			()-> new TicketNotFoundException("No Ticket Found For Pnr: "+pnr));	
-}
+	@Autowired
+	TicketRepository ticketRepository;
+
+	public Booking getTicketByPnr(String pnr) {
+		return ticketRepository.findByPnr(pnr)
+				.orElseThrow(() -> new TicketNotFoundException("No Ticket Found For Pnr: " + pnr));
+	}
 }

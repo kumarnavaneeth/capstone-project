@@ -3,6 +3,8 @@ package com.flightapp.ticket_service.entity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -21,8 +23,11 @@ public class Passenger {
 	    private Long id;
 	    private String name;
 	    private int age;
-	    private String gender;
-	    private String seatNumber;//meal type
+	    @Enumerated(EnumType.STRING)
+	    private Gender gender;
+	    private String seatNumber;
+	    @Enumerated(EnumType.STRING)
+	    private MealType mealType;
 	    @ManyToOne
 	    @JoinColumn(name = "booking_id")
 	    @JsonBackReference
