@@ -1,63 +1,85 @@
 # =========================
-# STS / Eclipse
+# IDEs
 # =========================
+# Eclipse / STS
 .project
 .classpath
 .settings/
 .springBeans
+.metadata/
 
-# =========================
-# IntelliJ (if someone uses)
-# =========================
+# IntelliJ
 .idea/
 *.iml
 
-# =========================
-# VS Code (optional)
-# =========================
+# VS Code
 .vscode/
 
 # =========================
-# Build files
+# Build outputs
 # =========================
-/target/
-/build/
+target/
+build/
+dist/
 out/
+.next/
+.nuxt/
+
+# =========================
+# Node / Frontend
+# =========================
+node_modules/
+jspm_packages/
+.pnp.*
+.yarn/
+.npm/
 
 # =========================
 # Logs
 # =========================
+logs/
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # =========================
-# OS generated files
+# Environment variables
+# =========================
+.env
+.env.*
+application.properties
+application.yml
+
+# =========================
+# Cache / temp
+# =========================
+.cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+.nyc_output/
+coverage/
+*.lcov
+*.tsbuildinfo
+*.tmp
+*.swp
+
+# =========================
+# OS files
 # =========================
 .DS_Store
 Thumbs.db
 
 # =========================
-# Environment files
+# Misc
 # =========================
-.env
+pids/
+*.pid
+*.seed
+*.pid.lock
 
 # =========================
-# Maven wrapper
+# Maven wrapper (optional)
 # =========================
 .mvn/wrapper/maven-wrapper.jar
-
-# =========================
-# Node modules (if frontend inside project)
-# =========================
-node_modules/
-
-# =========================
-# Temp files
-# =========================
-*.tmp
-*.swp
-
-# =========================
-# Application secrets (IMPORTANT)
-# =========================
-application.properties
-application.yml
