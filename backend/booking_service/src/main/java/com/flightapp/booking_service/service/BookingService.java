@@ -1,5 +1,6 @@
 package com.flightapp.booking_service.service;
 
-public class BookingService {
+public interface BookingService {
 
+    String testBookingService();
 }
