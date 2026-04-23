@@ -1,5 +1,5 @@
 package com.flightapp.ticket_service.entity;
 
-public class Ticket {
-
+public enum MealType {
+	VEG, NON_VEG, NO_MEAL
 }
