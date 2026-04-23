@@ -15,7 +15,6 @@ public AdminServiceImpl(AdminRepository adminRepository,JwtUtils jwtUtils) {
 	this.adminRepository=adminRepository;
 	this.jwtUtils=jwtUtils;
 }
-
 @Override
     public String login(AdminLoginRequest request) {
         return "jwt-token";
