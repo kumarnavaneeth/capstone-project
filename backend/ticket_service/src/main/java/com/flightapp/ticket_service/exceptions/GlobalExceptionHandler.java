@@ -16,4 +16,9 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<String> handleGenericException(Exception exception) {
 		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("something went wrong");
 	}
+	@ExceptionHandler(InvalidBookingException.class)
+	public ResponseEntity<String> handleInvalidBookingException(Exception exception){
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+				.body(exception.getMessage());
+	}
 }

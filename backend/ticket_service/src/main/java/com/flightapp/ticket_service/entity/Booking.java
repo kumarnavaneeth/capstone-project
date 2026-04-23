@@ -30,7 +30,6 @@ public class Booking {
 	private String pnr;
 	private Long userId;
 	private Long flightId;
-	private float totalAmount;
 	private LocalDateTime bookingDate;
 	@Enumerated(EnumType.STRING)
 	private BookingStatus status;
