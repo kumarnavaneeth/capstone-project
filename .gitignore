@@ -46,13 +46,13 @@ buildNumber.properties
 !.vscode/launch.json
 !.vscode/extensions.json
 *.code-workspace
-
 # IDE - IntelliJ IDEA #
 .idea/
 *.iws
 *.iml
 *.ipr
-
+ target/
+.factorypath
 # IDE - Eclipse #
 .apt_generated
 .classpath
@@ -72,55 +72,51 @@ local.properties
 .settings/
 .loadpath
 .recommenders
-
+ 
 # External tool builders
 .externalToolBuilders/
-
+ 
 # Locally stored "Eclipse launch configurations"
 *.launch
-
+ 
 # PyDev specific (Python IDE for Eclipse)
 *.pydevproject
-
+ 
 # CDT-specific (C/C++ Development Tooling)
 .cproject
-
+ 
 # CDT- autotools
 .autotools
-
+ 
 # Java annotation processor (APT)
 .factorypath
-
+ 
 # PDT-specific (PHP Development Tools)
 .buildpath
-
+ 
 # sbteclipse plugin
 .target
-
+ 
 # Tern plugin
 .tern-project
-
+ 
 # TeXlipse plugin
 .texlipse
-
+ 
 # STS (Spring Tool Suite)
 .springBeans
-target/
-# =========================
-# IntelliJ (if someone uses)
-# =========================
-.idea/
-*.iml
-
+ 
+# Code Recommenders
+.recommenders/
+ 
 # Annotation Processing
 .apt_generated/
 .apt_generated_tests/
-
+ 
 # Scala IDE specific (Scala & Java development for Eclipse)
 .cache-main
 .scala_dependencies
 .worksheet
-
 # Node / React #
 node_modules/
 dist/
@@ -134,7 +130,6 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
-
 # Terraform #
 .terraform/
 *.tfstate
