@@ -19,13 +19,8 @@ public class TicketService {
 	TicketRepository ticketRepository;
 
 	public Booking bookTicket(Long flightId, Booking booking) {
-		for(Passenger passenger:booking.getPassengers()) {
-			if(passenger.getName()==null || passenger.getName().trim().isEmpty()) {
-				throw new InvalidBookingException("passenger name cannot be empty");
-			}
-			if(passenger.getAge()<=0) {
-				throw new InvalidBookingException("Age must be greater than zero");
-			}
+		if(booking.getPassengers()==null || booking.getPassengers().isEmpty()) {
+			throw new InvalidBookingException("at least one passenger is required");
 		}
 		booking.setFlightId(flightId);
 		booking.setUserId(101L);
@@ -40,7 +35,7 @@ public class TicketService {
 		return ticketRepository.save(booking);
 	}
 	public String generatePnr() {
-		return UUID.randomUUID().toString().substring(0,8).toUpperCase();
+		return "FL"+UUID.randomUUID().toString().substring(0,6).toUpperCase();
 	}
 	
 	public Booking getTicketByPnr(String pnr) {

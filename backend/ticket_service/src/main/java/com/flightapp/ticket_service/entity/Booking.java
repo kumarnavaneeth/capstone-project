@@ -14,6 +14,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,7 +26,7 @@ import lombok.NoArgsConstructor;
 public class Booking {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+	private Long bookingId;
 	@Column(unique = true)
 	private String pnr;
 	private Long userId;
@@ -35,5 +36,6 @@ public class Booking {
 	private BookingStatus status;
 	@OneToMany(mappedBy = "booking", cascade = CascadeType.ALL)
 	@JsonManagedReference
+	@Valid
 	private List<Passenger> passengers;
 }
