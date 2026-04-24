@@ -243,7 +243,6 @@ local.properties
 .scala_dependencies
 
 .worksheet
- 
 # Node / React #
 
 node_modules/
@@ -269,7 +268,6 @@ yarn-error.log*
 .env.test.local
 
 .env.production.local
- 
 # Terraform #
 
 .terraform/
@@ -295,9 +293,7 @@ _override.tf.json
 terraform.rc
  
 # OS specific #
-
 .DS_Store
-
 Thumbs.db
  
 # Docker #

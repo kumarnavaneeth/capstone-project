@@ -8,7 +8,6 @@ function AdminDashboard() {
     localStorage.removeItem("role");
     navigate("/admin/login");
   };
-
   return (
     <div>
       <nav

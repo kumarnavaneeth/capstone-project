@@ -11,7 +11,6 @@ const Login = () => {
     localStorage.setItem("token", "dummy-token");
     navigate("/");
   };
-
   return (
     <div style={{ width: "300px", margin: "80px auto" }}>
       <h2>Login</h2>
