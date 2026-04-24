@@ -29,7 +29,6 @@ public class Passenger {
 	    private int age;
 	    @Enumerated(EnumType.STRING)
 	    private Gender gender;
-	    private String seatNumber;
 	    @Enumerated(EnumType.STRING)
 	    private MealType mealType;
 	    @ManyToOne
