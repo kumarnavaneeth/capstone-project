@@ -1,15 +1,15 @@
 # Compiled class file
 *.class
- 
+
 # Log files
 *.log
- 
+**/.metadata/
 # BlueJ files
 *.ctxt
- 
+
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
- 
+
 # Package Files #
 *.jar
 *.war
@@ -18,11 +18,11 @@
 *.zip
 *.tar.gz
 *.rar
- 
+
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
- 
+
 # Maven #
 target/
 pom.xml.tag
@@ -34,11 +34,11 @@ dependency-reduced-pom.xml
 buildNumber.properties
 .mvn/timing.properties
 .mvn/wrapper/maven-wrapper.jar
- 
+
 # Gradle #
 .gradle
 /build/
- 
+
 # IDE - VS Code #
 .vscode/
 !.vscode/settings.json
@@ -46,7 +46,6 @@ buildNumber.properties
 !.vscode/launch.json
 !.vscode/extensions.json
 *.code-workspace
- 
 # IDE - IntelliJ IDEA #
 .idea/
 *.iws
@@ -118,7 +117,6 @@ local.properties
 .cache-main
 .scala_dependencies
 .worksheet
- 
 # Node / React #
 node_modules/
 dist/
@@ -132,7 +130,6 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
- 
 # Terraform #
 .terraform/
 *.tfstate
