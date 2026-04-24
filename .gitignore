@@ -147,10 +147,10 @@ _override.tf
 _override.tf.json
 .terraformrc
 terraform.rc
-
+ 
 # OS specific #
 .DS_Store
 Thumbs.db
-
+ 
 # Docker #
 .docker/
