@@ -5,7 +5,7 @@
 .classpath
 .settings/
 .springBeans
-
+target/
 # =========================
 # IntelliJ (if someone uses)
 # =========================
