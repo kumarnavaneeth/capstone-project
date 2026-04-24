@@ -105,9 +105,12 @@ local.properties
 
 # STS (Spring Tool Suite)
 .springBeans
-
-# Code Recommenders
-.recommenders/
+target/
+# =========================
+# IntelliJ (if someone uses)
+# =========================
+.idea/
+*.iml
 
 # Annotation Processing
 .apt_generated/
@@ -144,10 +147,10 @@ _override.tf
 _override.tf.json
 .terraformrc
 terraform.rc
-
+ 
 # OS specific #
 .DS_Store
 Thumbs.db
-
+ 
 # Docker #
 .docker/
