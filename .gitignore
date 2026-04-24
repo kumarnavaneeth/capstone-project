@@ -59,7 +59,7 @@ build/
 
 ### VS Code ###
 .vscode/
-
+# Log files
 *.log
  
 # BlueJ files
