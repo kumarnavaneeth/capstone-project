@@ -6,7 +6,11 @@ const User = sequelize.define("User", {
         autoIncrement: true,
         primaryKey: true,
     },
-    name: {
+    firstName: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    lastName:{
         type: DataTypes.STRING,
         allowNull: false,
     },
@@ -15,6 +19,11 @@ const User = sequelize.define("User", {
         allowNull: false,
         unique: true,
     },
+    phoneNumber:{
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true
+    },
     password: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -22,7 +31,7 @@ const User = sequelize.define("User", {
     role: {
         type: DataTypes.STRING,
         allowNull: false,
-        defaultValue: "user",
+        defaultValue: "USER",
     },
 });
 module.exports = User;
