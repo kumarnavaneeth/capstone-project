@@ -1,13 +1,15 @@
 const app = require("./app");
 const sequelize = require("./config/db");
-const createAdminRoles = require("./utils/dbInitializer");
+const dataInitializer= require("./utils/dbInitializer");
+const{User,Role,UserRole}=require("./models/index");
 require("dotenv").config();
 const PORT = process.env.PORT || 5000;
 sequelize
   .sync({ alter: true })
   .then(async () => {
     console.log("Database connected");
-    await createAdminRoles();
+    console.log("Tables synced");
+    await dataInitializer();
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
