@@ -4,6 +4,7 @@
 # Log files
 *.log
 **/.metadata/
+
 # BlueJ files
 *.ctxt
 
@@ -123,6 +124,7 @@ target/
 
 # Node / React #
 node_modules/
+package-lock.json
 dist/
 build/
 .eslintcache
