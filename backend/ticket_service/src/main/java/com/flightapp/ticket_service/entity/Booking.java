@@ -14,6 +14,9 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,16 +28,18 @@ import lombok.NoArgsConstructor;
 public class Booking {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+	private Long bookingId;
 	@Column(unique = true)
 	private String pnr;
 	private Long userId;
 	private Long flightId;
-	private float totalAmount;
 	private LocalDateTime bookingDate;
 	@Enumerated(EnumType.STRING)
 	private BookingStatus status;
 	@OneToMany(mappedBy = "booking", cascade = CascadeType.ALL)
 	@JsonManagedReference
+	@Valid
+	@NotNull
+	@NotEmpty
 	private List<Passenger> passengers;
 }

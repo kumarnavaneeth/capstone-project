@@ -1,6 +1,30 @@
-# Compiled class file
-*.class
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+
+# production
+/build
+
+# misc
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*/target/**
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+# Compiled class file
+
+*.class
+ .metadata/
 # Log files
 *.log
 **/.metadata/
@@ -25,36 +49,13 @@ hs_err_pid*
 replay_pid*
 
 # Maven #
+HELP.md
 target/
-pom.xml.tag
-pom.xml.releaseBackup
-pom.xml.versionsBackup
-pom.xml.next
-release.properties
-dependency-reduced-pom.xml
-buildNumber.properties
-.mvn/timing.properties
 .mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
 
-# Gradle #
-.gradle
-/build/
-
-# IDE - VS Code #
-.vscode/
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-*.code-workspace
-
-# IDE - IntelliJ IDEA #
-.idea/
-*.iws
-*.iml
-*.ipr
-
-# IDE - Eclipse #
+### STS ###
 .apt_generated
 .classpath
 .factorypath
@@ -62,66 +63,209 @@ buildNumber.properties
 .settings
 .springBeans
 .sts4-cache
-.metadata
-bin/
-tmp/
-*.tmp
-*.bak
-*.swp
-*~.nib
-local.properties
-.settings/
-.loadpath
-.recommenders
 
-# External tool builders
-.externalToolBuilders/
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
 
-# Locally stored "Eclipse launch configurations"
-*.launch
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
 
-# PyDev specific (Python IDE for Eclipse)
-*.pydevproject
+### VS Code ###
+.vscode/
+# Log files
+*.log
+ 
+# BlueJ files
 
-# CDT-specific (C/C++ Development Tooling)
-.cproject
+*.ctxt
+ 
+# Mobile Tools for Java (J2ME)
 
-# CDT- autotools
-.autotools
+.mtj.tmp/
+ 
+# Package Files #
 
-# Java annotation processor (APT)
-.factorypath
+*.jar
 
-# PDT-specific (PHP Development Tools)
-.buildpath
+*.war
 
-# sbteclipse plugin
-.target
+*.nar
 
-# Tern plugin
-.tern-project
+*.ear
 
-# TeXlipse plugin
-.texlipse
+*.zip
 
-# STS (Spring Tool Suite)
-.springBeans
+*.tar.gz
+
+*.rar
+ 
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+
+hs_err_pid*
+
+replay_pid*
+ 
+# Maven #
+
 target/
-# =========================
-# IntelliJ (if someone uses)
-# =========================
+
+pom.xml.tag
+
+pom.xml.releaseBackup
+
+pom.xml.versionsBackup
+
+pom.xml.next
+
+release.properties
+
+dependency-reduced-pom.xml
+
+buildNumber.properties
+
+.mvn/timing.properties
+
+.mvn/wrapper/maven-wrapper.jar
+ 
+# Gradle #
+
+.gradle
+
+/build/
+ 
+# IDE - VS Code #
+
+.vscode/
+
+!.vscode/settings.json
+
+!.vscode/tasks.json
+
+!.vscode/launch.json
+
+!.vscode/extensions.json
+
+*.code-workspace
+ 
+# IDE - IntelliJ IDEA #
+
 .idea/
+
+*.iws
+
 *.iml
 
+*.ipr
+ 
+# IDE - Eclipse #
+
+.apt_generated
+
+.classpath
+
+.factorypath
+
+.project
+
+.settings
+
+.springBeans
+
+.sts4-cache
+
+**/.metadata
+
+bin/
+
+tmp/
+
+*.tmp
+
+*.bak
+
+*.swp
+
+*~.nib
+
+local.properties
+
+.settings/
+
+.loadpath
+
+.recommenders
+ 
+# External tool builders
+
+.externalToolBuilders/
+ 
+# Locally stored "Eclipse launch configurations"
+
+*.launch
+ 
+# PyDev specific (Python IDE for Eclipse)
+
+*.pydevproject
+ 
+# CDT-specific (C/C++ Development Tooling)
+
+.cproject
+ 
+# CDT- autotools
+
+.autotools
+ 
+# Java annotation processor (APT)
+
+.factorypath
+ 
+# PDT-specific (PHP Development Tools)
+
+.buildpath
+ 
+# sbteclipse plugin
+
+.target
+ 
+# Tern plugin
+
+.tern-project
+ 
+# TeXlipse plugin
+
+.texlipse
+ 
+# STS (Spring Tool Suite)
+
+.springBeans
+ 
+# Code Recommenders
+
+.recommenders/
+ 
 # Annotation Processing
+
 .apt_generated/
+
 .apt_generated_tests/
-
+ 
 # Scala IDE specific (Scala & Java development for Eclipse)
-.cache-main
-.scala_dependencies
-.worksheet
 
+.cache-main
+
+.scala_dependencies
+
+.worksheet
 # Node / React #
 node_modules/
 package-lock.json
@@ -137,17 +281,51 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
+node_modules/
+
+dist/
+
+build/
+
+.eslintcache
+
+npm-debug.log*
+
+yarn-debug.log*
+
+yarn-error.log*
+
+.env
+
+.env.local
+
+.env.development.local
+
+.env.test.local
+
+.env.production.local
 # Terraform #
+
 .terraform/
+
 *.tfstate
+
 *.tfstate.backup
+
 *.tfvars
+
 *.tfvars.json
+
 override.tf
+
 override.tf.json
+
 _override.tf
+
 _override.tf.json
+
 .terraformrc
+
 terraform.rc
  
 # OS specific #
@@ -155,4 +333,9 @@ terraform.rc
 Thumbs.db
  
 # Docker #
+
 .docker/
+HotSpot JVM error
+An application or applet has crashed Java Virtual Machine. As result, a log file with the name hs_err_pid is placed on the desktop.
+
+ 

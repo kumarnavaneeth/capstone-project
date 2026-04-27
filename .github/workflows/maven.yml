@@ -1,0 +1,70 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [ "main", "dev", "feature/**" ]
+  pull_request:
+    branches: [ "main", "dev" ]
+
+concurrency:
+  group: backend-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: flight_service
+            type: java
+          - service: ticket_service
+            type: java
+          - service: user_service
+            type: node
+
+    defaults:
+      run:
+        working-directory: backend/${{ matrix.service }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # -----------------------
+      # Java setup
+      # -----------------------
+      - name: Setup Java
+        if: matrix.type == 'java'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      # -----------------------
+      # Node setup (NO cache, NO lockfile)
+      # -----------------------
+      - name: Setup Node.js
+        if: matrix.type == 'node'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      # -----------------------
+      # Java build & test
+      # -----------------------
+      - name: Build & Test (Java)
+        if: matrix.type == 'java'
+        run: mvn clean install
+
+      # -----------------------
+      # Node build & test (package.json only)
+      # -----------------------
+      - name: Install & Test (Node)
+        if: matrix.type == 'node'
+        run: |
+          npm install
+          npm test
