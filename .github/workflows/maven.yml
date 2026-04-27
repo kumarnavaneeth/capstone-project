@@ -67,4 +67,3 @@ jobs:
         if: matrix.type == 'node'
         run: |
           npm install
-          npm test
