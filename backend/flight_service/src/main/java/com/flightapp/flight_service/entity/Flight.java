@@ -28,8 +28,7 @@ public class Flight {
     private String destination;
     private LocalDateTime departureTime;
     private LocalDateTime arrivalTime;
-    private int duration;
-    private int totalSeats;
+    private int duration;//In Minutes
     private int availableSeats;
     private float ticketPrice;
     private String mealOption;
