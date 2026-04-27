@@ -6,7 +6,6 @@ on:
   pull_request:
     branches: [ "main", "dev" ]
 
-# Prevent duplicate runs from canceling each other
 concurrency:
   group: backend-ci-${{ github.ref }}
   cancel-in-progress: true
@@ -46,15 +45,13 @@ jobs:
           cache: maven
 
       # -----------------------
-      # Node setup
+      # Node setup (NO cache, NO lockfile)
       # -----------------------
       - name: Setup Node.js
         if: matrix.type == 'node'
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache: npm
-          cache-dependency-path: backend/${{ matrix.service }}/package-lock.json
 
       # -----------------------
       # Java build & test
@@ -64,7 +61,7 @@ jobs:
         run: mvn clean install
 
       # -----------------------
-      # Node build & test (no npm ci)
+      # Node build & test (package.json only)
       # -----------------------
       - name: Install & Test (Node)
         if: matrix.type == 'node'
