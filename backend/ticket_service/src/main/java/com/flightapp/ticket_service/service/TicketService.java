@@ -22,9 +22,9 @@ public class TicketService {
 		if (booking == null) {
 			throw new InvalidBookingException("Booking cannot be null");
 		}
-	    if (flightId == null || flightId<=0) {
-	        throw new InvalidBookingException("Invalid flightId");
-	    }
+		if (flightId == null || flightId <= 0) {
+			throw new InvalidBookingException("Invalid flightId");
+		}
 		booking.setFlightId(flightId);
 		booking.setUserId(101L);
 		booking.setStatus(BookingStatus.CONFIRMED);
