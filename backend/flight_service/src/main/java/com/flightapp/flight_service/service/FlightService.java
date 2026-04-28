@@ -34,17 +34,18 @@ public class FlightService {
                 FlightStatus.AVAILABLE
         );
 
-        boolean blockedAirlineExists = flights.stream()
-                .anyMatch(flight -> airlineRepository
+        List<Flight> activeFlights = flights.stream()
+                .filter(flight -> airlineRepository
                         .findByAirlineName(flight.getAirlineName())
-                        .map(airline -> airline.getStatus() == AirlineStatus.BLOCKED)
-                        .orElse(false));
+                        .map(airline -> airline.getStatus() == AirlineStatus.ACTIVE)
+                        .orElse(false))
+                .collect(Collectors.toList());
 
-        if (blockedAirlineExists) {
+        if (activeFlights.isEmpty() && !flights.isEmpty()) {
             throw new RuntimeException("Airline is currently blocked and cannot proceed with bookings");
         }
-    
-        return flights.stream().map(flight -> {
+
+        return activeFlights.stream().map(flight -> {
             FlightResponse response = new FlightResponse();
             response.setSource(flight.getSource());
             response.setDestination(flight.getDestination());
