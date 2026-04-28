@@ -3,23 +3,17 @@ import { useNavigate, useLocation } from "react-router-dom";
 
 const Login = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
     localStorage.setItem("token", "dummy-token");
-    const redirectTo = location.state?.redirectTo;
-    const flight = location.state?.flight;
-    const passengers = location.state?.passengers;
-
-    if (redirectTo === "/booking") {
-      navigate("/booking", {
-        state: { flight, passengers },
-      });
+    if (email === "admin@test.com") {
+      localStorage.setItem("role", "ADMIN");
+      navigate("/admin/dashboard");
     } else {
+      localStorage.setItem("role", "USER");
       navigate("/");
     }
   };

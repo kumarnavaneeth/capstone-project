@@ -4,10 +4,10 @@ import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
-import AdminLogin from "./pages/Admin/AdminLogin";
+import ManageAirlines from "./pages/Admin/ManageAirlines"
+import AddFlight from "./pages/Admin/AddFlights";
 import SearchFlights from "./pages/user/SearchFlights";
 import BookingPage from "./pages/user/BookingPage";
-
 function Navbar() {
   return (
     <nav
@@ -15,23 +15,18 @@ function Navbar() {
         padding: "15px 30px",
         backgroundColor: "#003580",
         color: "white",
-        display: "flex",
-        justifyContent: "space-between",
+        display:"flex",
+        justifyContent:"space-between",
       }}
     >
       <div>
-        <Link to="/login" style={{ color: "white", marginRight: "15px" }}>
-          Login
-        </Link>
-
-        <Link to="/signup" style={{ color: "white", marginRight: "15px" }}>
-          Signup
-        </Link>
-
-        <Link to="/admin/login" style={{ color: "white" }}>
-          Admin Login
-        </Link>
-      </div>
+   <Link to="/login" style={{ color: "white", marginRight: "15px" }}>
+        Login
+      </Link>
+      <Link to="/signup" style={{ color: "white", marginRight: "15px" }}>
+        Signup
+      </Link>
+    </div>
     </nav>
   );
 }
@@ -42,13 +37,14 @@ function App() {
       <Navbar />
 
       <Routes>
-        <Route path="/" element={<SearchFlights />} />
+        <Route path="/" element={<SearchFlights/>}/>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
-        <Route path="/booking" element={<BookingPage />} />
-      </Routes>
+        <Route path="/admin/airlines" element={<ManageAirlines/>}/>
+        <Route path="/admin/add-flights" element={<AddFlight/>}/>
+        <Route path="/booking" element={<BookingPage/>}/>
+        </Routes>
     </BrowserRouter>
   );
 }
