@@ -1,16 +1,29 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
     localStorage.setItem("token", "dummy-token");
-    navigate("/");
+    const redirectTo = location.state?.redirectTo;
+    const flight = location.state?.flight;
+    const passengers = location.state?.passengers;
+
+    if (redirectTo === "/booking") {
+      navigate("/booking", {
+        state: { flight, passengers },
+      });
+    } else {
+      navigate("/");
+    }
   };
+
   return (
     <div style={{ width: "300px", margin: "80px auto" }}>
       <h2>Login</h2>
@@ -23,8 +36,7 @@ const Login = () => {
           onChange={(e) => setEmail(e.target.value)}
           required
         />
-        <br />
-        <br />
+        <br /><br />
 
         <input
           type="password"
@@ -33,8 +45,7 @@ const Login = () => {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-        <br />
-        <br />
+        <br /><br />
 
         <button type="submit">Login</button>
       </form>
