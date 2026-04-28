@@ -1,12 +1,15 @@
 const bcrypt = require("bcryptjs");
-const User = require("../models/userModel");
+const {User, Role, UserRole} = require("../models/index");
 const { generateToken } = require("../utils/jwtUtil");
 //login
 exports.login = async ({ email, password }) => {
   if(!email||!password){
     throw new Error("Email and password are required");
   }
-  const user = await User.findOne({ where: { email } });
+  const user = await User.findOne({ 
+    where: { email },
+    include: [{model: Role, as: "roles",attributes:["role_name"], through: { attributes: [] } }],
+  });
   if (!user) {
     throw new Error("User not found");
   }
@@ -14,11 +17,9 @@ exports.login = async ({ email, password }) => {
   if (!isMatch) {
     throw new Error("Invalid credentials");
   }
-  const token = generateToken(user);
-  return {
-    token,
-    role: user.role
-  };
+  const roles = user.roles.map(role => role.role_name);
+  const token = generateToken({...user.toJSON(), roles});
+  return {token,roles};
 };
 //register
 exports.register = async ({
@@ -63,14 +64,19 @@ exports.register = async ({
     throw new Error("Phone number already exists");
   }
   const hashedPassword = await bcrypt.hash(password, 10);
-  //creates new user
-  await User.create({
+  const newUser=await User.create({
     firstName,
     lastName,
     email,
     phoneNumber,
     password: hashedPassword,
-    role: "USER",
   });
-  return {sucess: true};
+  const userRole=await Role.findOne({where:{ role_name: "USER" }});
+  if(userRole){
+    await UserRole.create({
+      user_id: newUser.user_id, 
+      role_id: userRole.role_id,
+  });
+}
+return {sucess:true};
 };
