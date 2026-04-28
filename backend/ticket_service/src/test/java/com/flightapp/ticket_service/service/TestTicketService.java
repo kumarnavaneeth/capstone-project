@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,6 +25,7 @@ import com.flightapp.ticket_service.entity.Gender;
 import com.flightapp.ticket_service.entity.MealType;
 import com.flightapp.ticket_service.entity.Passenger;
 import com.flightapp.ticket_service.exceptions.InvalidBookingException;
+import com.flightapp.ticket_service.exceptions.TicketNotFoundException;
 import com.flightapp.ticket_service.repository.TicketRepository;
 
 class TestTicketService {
@@ -134,6 +136,43 @@ class TestTicketService {
 		assertThrows(InvalidBookingException.class, () -> {
 			ticketService.bookTicket(100L, null);
 		});
-
 	}
+
+	@Test
+	void testViewTicketByPnrSuccessfully() {
+		passengers.add(firstPassenger);
+		booking.setPassengers(passengers);
+		booking.setPnr("FL23DC12");
+		booking.setFlightId(100L);
+		when(ticketRepository.findByPnr("FL23DC12")).thenReturn(Optional.of(booking));
+		Booking result = ticketService.getTicketByPnr("FL23DC12");
+		assertNotNull(result);
+		assertEquals(10L, result.getBookingId());
+		assertEquals(100L, result.getFlightId());
+		assertEquals("FL23DC12", result.getPnr());
+		assertNotNull(result.getPassengers());
+		assertEquals("Ram", result.getPassengers().get(0).getName());
+		assertEquals(20, result.getPassengers().get(0).getAge());
+		assertEquals(Gender.MALE, result.getPassengers().get(0).getGender());
+		assertEquals(MealType.VEG, result.getPassengers().get(0).getMealType());
+		verify(ticketRepository, times(1)).findByPnr("FL23DC12");
+	}
+
+	@Test
+	void testViewTicketByWrongPnr() {
+		when(ticketRepository.findByPnr("FL121212")).thenReturn(Optional.empty());
+		assertThrows(TicketNotFoundException.class, () -> {
+			ticketService.getTicketByPnr("FL121212");
+		});
+		verify(ticketRepository, times(1)).findByPnr("FL121212");
+	}
+
+	@Test
+	void testViewTicketByNullPnr() {
+		when(ticketRepository.findByPnr(null)).thenReturn(Optional.empty());
+		assertThrows(TicketNotFoundException.class, () -> {
+			ticketService.getTicketByPnr(null);
+		});
+	}
+
 }

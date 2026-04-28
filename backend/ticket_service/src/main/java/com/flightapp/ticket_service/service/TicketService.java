@@ -44,6 +44,6 @@ public class TicketService {
 
 	public Booking getTicketByPnr(String pnr) {
 		return ticketRepository.findByPnr(pnr)
-				.orElseThrow(() -> new TicketNotFoundException("No Ticket Found For Pnr: " + pnr));
+				.orElseThrow(()->new TicketNotFoundException(""));
 	}
 }
