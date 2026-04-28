@@ -2,15 +2,22 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const Login = () => {
-  const navigate = useNavigate();
+  const navigate = useNavigate(); 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    localStorage.setItem("token", "dummy-token");
-    navigate("/");
+ localStorage.setItem("token", "dummy-token");
+    if (email === "admin@test.com") {
+      localStorage.setItem("role", "ADMIN");
+      navigate("/admin/dashboard");
+    } else {
+      localStorage.setItem("role", "USER");
+      navigate("/");
+    }
   };
+  
   return (
     <div style={{ width: "300px", margin: "80px auto" }}>
       <h2>Login</h2>
