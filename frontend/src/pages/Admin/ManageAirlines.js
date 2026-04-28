@@ -8,17 +8,16 @@ function ManageAirlines() {
   });
 
   const [showModal, setShowModal] = useState(false);
-
   const handleChange = (e) => {
     setAirline({
       ...airline, 
       [e.target.name]: e.target.value,
     });
-    
+
   };
 
   const handleSubmit = (e) => {
-    e.preventDefault();
+    e.preventDefault();  
 
     console.log("Airline added:", airline);
     setShowModal(true);

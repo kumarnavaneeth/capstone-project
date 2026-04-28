@@ -120,7 +120,7 @@ const overlayStyle = {
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
-  zIndex: 9999,
+  zIndex: 9999,  
 };
 
 const popupStyle = {

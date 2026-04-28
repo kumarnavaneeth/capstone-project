@@ -2,7 +2,6 @@ import { Link, useNavigate } from "react-router-dom";
 
 function AdminDashboard() {
   const navigate = useNavigate();
-
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
@@ -35,7 +34,7 @@ function AdminDashboard() {
                   Add Flights
           </Link>
 
-        </div>
+        </div> 
 
         <button
           onClick={handleLogout}
