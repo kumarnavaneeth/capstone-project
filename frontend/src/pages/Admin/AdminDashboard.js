@@ -28,9 +28,14 @@ function AdminDashboard() {
             Manage Schedules
           </Link>
 
-          <Link to="/admin/airlines" style={{ color: "white" }}>
+          <Link to="/admin/airlines" style={{ color: "white", marginRight: "20px"  }}>
             Manage Airlines
           </Link>
+
+           <Link to="/admin/add-flights" style={{ color: "white", marginRight: "20px" }}>
+                  Add Flights
+          </Link>
+
         </div>
 
         <button
@@ -42,8 +47,8 @@ function AdminDashboard() {
             padding: "6px 12px",
             cursor: "pointer",
           }}
-        >
-          Logout
+          >
+        Logout
         </button>
       </nav>
 

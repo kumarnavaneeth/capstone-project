@@ -8,9 +8,16 @@ const Login = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    localStorage.setItem("token", "dummy-token");
-    navigate("/");
+ localStorage.setItem("token", "dummy-token");
+    if (email === "admin@test.com") {
+      localStorage.setItem("role", "ADMIN");
+      navigate("/admin/dashboard");
+    } else {
+      localStorage.setItem("role", "USER");
+      navigate("/");
+    }
   };
+  
   return (
     <div style={{ width: "300px", margin: "80px auto" }}>
       <h2>Login</h2>
