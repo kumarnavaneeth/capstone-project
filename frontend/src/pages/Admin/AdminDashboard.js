@@ -27,7 +27,6 @@ function AdminDashboard() {
           >
             Manage Schedules
           </Link>
-
           <Link to="/admin/airlines" style={{ color: "white", marginRight: "20px"  }}>
             Manage Airlines
           </Link>

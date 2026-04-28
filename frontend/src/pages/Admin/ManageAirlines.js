@@ -11,9 +11,10 @@ function ManageAirlines() {
 
   const handleChange = (e) => {
     setAirline({
-      ...airline,
+      ...airline, 
       [e.target.name]: e.target.value,
     });
+    
   };
 
   const handleSubmit = (e) => {
