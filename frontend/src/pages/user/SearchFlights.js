@@ -4,7 +4,6 @@ import { airports } from "../../data/airports";
 
 function SearchFlights() {
   const navigate = useNavigate();
-
   const [source, setSource] = useState("");
   const [destination, setDestination] = useState("");
   const [date, setDate] = useState("");

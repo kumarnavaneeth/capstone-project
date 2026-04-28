@@ -3,6 +3,7 @@ import { useState } from "react";
 
 function BookingPage() {
   const location = useLocation();
+  
   const { flight, passengers } = location.state || {};
 
   const [count, setCount] = useState(passengers || 1);
