@@ -18,16 +18,14 @@ public class GlobalExceptionHandler {
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("invalid input");
 	}
 
-	@ExceptionHandler(TicketNotFoundException.class)
-	public ResponseEntity<String> handleTicketNotFoundException(TicketNotFoundException ticketNotFoundException) {
-		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ticketNotFoundException.getMessage());
-	}
-
 	@ExceptionHandler(InvalidBookingException.class)
 	public ResponseEntity<String> handleInvalidBookingException(InvalidBookingException invalidBookingException) {
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(invalidBookingException.getMessage());
 	}
-
+	@ExceptionHandler(TicketNotFoundException.class)
+	public ResponseEntity<String> handleTicketNotFoundException(TicketNotFoundException ticketNotFoundException){
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ticketNotFoundException.getMessage());
+	}
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public Map<String, String> handleValidationExceptions(MethodArgumentNotValidException ex) {

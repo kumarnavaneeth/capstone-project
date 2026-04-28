@@ -5,8 +5,10 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Arrays;
@@ -23,6 +25,7 @@ import com.flightapp.ticket_service.entity.Booking;
 import com.flightapp.ticket_service.entity.Gender;
 import com.flightapp.ticket_service.entity.MealType;
 import com.flightapp.ticket_service.entity.Passenger;
+import com.flightapp.ticket_service.exceptions.TicketNotFoundException;
 import com.flightapp.ticket_service.service.TicketService;
 
 import tools.jackson.databind.ObjectMapper;
@@ -151,10 +154,32 @@ class TestTicketController {
 				.content(objectMapper.writeValueAsString(booking))).andExpect(status().isBadRequest());
 		verify(ticketService, never()).bookTicket(any(Long.class), any(Booking.class));
 	}
+
 	@Test
 	void testTicketBookingWithNullRequestBody() throws Exception {
-		mockMvc.perform(post("/api/v1.0/flight/booking/100").contentType(MediaType.APPLICATION_JSON)
-				.content("")).andExpect(status().isBadRequest());
-	verify(ticketService,never()).bookTicket(any(Long.class),any(Booking.class));
+		mockMvc.perform(post("/api/v1.0/flight/booking/100").contentType(MediaType.APPLICATION_JSON).content(""))
+				.andExpect(status().isBadRequest());
+		verify(ticketService, never()).bookTicket(any(Long.class), any(Booking.class));
+	}
+
+	@Test
+	void testViewTicketByInvalidPnr() throws Exception {
+		when(ticketService.getTicketByPnr("FL23DS12")).thenThrow(new TicketNotFoundException(""));
+		mockMvc.perform(get("/api/v1.0/flight/ticket/FL23DS12")).andExpect(status().isNotFound());
+		verify(ticketService, times(1)).getTicketByPnr("FL23DS12");
+	}
+
+	@Test
+	void testViewTicketWithValidPnr() throws Exception {
+		booking.setFlightId(110L);
+		booking.setPnr("FL123456");
+		when(ticketService.getTicketByPnr("FL123456")).thenReturn(booking);
+		mockMvc.perform(get("/api/v1.0/flight/ticket/FL123456")).andExpect(status().isOk())
+				.andExpect(jsonPath("$.bookingId").value(10L)).andExpect(jsonPath("$.pnr").value("FL123456"))
+				.andExpect(jsonPath("$.flightId").value(110L)).andExpect(jsonPath("$.passengers[0].name").value("Ram"))
+				.andExpect(jsonPath("$.passengers[0].age").value(25))
+				.andExpect(jsonPath("$.passengers[0].gender").value("MALE"))
+				.andExpect(jsonPath("$.passengers[0].mealType").value("VEG"));
+		verify(ticketService, times(1)).getTicketByPnr("FL123456");
 	}
 }
