@@ -28,17 +28,14 @@ exports.register = async ({
   email,
   phoneNumber,
   password,
-  confirmPassword, }) => {
-    if(!firstName||!lastName||!email ||!phoneNumber||!password||!confirmPassword){
+   }) => {
+    if(!firstName||!lastName||!email ||!phoneNumber||!password){
       throw new Error("All fields are required");
     }
     firstName=firstName.trim();
     lastName=lastName.trim();
     email=email.trim();
     phoneNumber=phoneNumber.trim();
-  if (password !== confirmPassword) {
-    throw new Error("Passwords do not match");
-  }
   if(password.length<6){
     throw new Error("Password must be at least 6 characters");
   }
@@ -78,5 +75,5 @@ exports.register = async ({
       role_id: userRole.role_id,
   });
 }
-return {sucess:true};
+return {success:true};
 };
