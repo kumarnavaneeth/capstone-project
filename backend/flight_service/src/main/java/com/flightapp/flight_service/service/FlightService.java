@@ -34,31 +34,37 @@ public class FlightService {
                 FlightStatus.AVAILABLE
         );
 
-        flights = flights.stream()
-                .filter(flight -> airlineRepository
+        boolean blockedAirlineExists = flights.stream()
+                .anyMatch(flight -> airlineRepository
                         .findByAirlineName(flight.getAirlineName())
-                        .map(airline -> airline.getStatus() == AirlineStatus.ACTIVE)
-                        .orElse(false))
-                .collect(Collectors.toList());
+                        .map(airline -> airline.getStatus() == AirlineStatus.BLOCKED)
+                        .orElse(false));
 
-        return flights.stream().map(f -> {
-            FlightResponse res = new FlightResponse();
-            res.setSource(f.getSource());
-            res.setDestination(f.getDestination());
-            res.setAirline(f.getAirlineName());
-            res.setFlightNumber(f.getFlightNumber());
-            res.setPrice(f.getTicketPrice());
-            res.setDepartureTime(f.getDepartureTime().toString());
-            res.setArrivalTime(f.getArrivalTime().toString());
-            res.setNonBusinessClassSeats(f.getNonBusinessClassSeats());
-            res.setBusinessClassSeats(f.getBusinessClassSeats());
-            res.setAircraftType(f.getAircraftType());
-            res.setStatus(f.getStatus());
-            return res;
+        if (blockedAirlineExists) {
+            throw new RuntimeException("Airline is currently blocked and cannot proceed with bookings");
+        }
+    
+        return flights.stream().map(flight -> {
+            FlightResponse response = new FlightResponse();
+            response.setSource(flight.getSource());
+            response.setDestination(flight.getDestination());
+            response.setAirline(flight.getAirlineName());
+            response.setFlightNumber(flight.getFlightNumber());
+            response.setPrice(flight.getTicketPrice());
+            response.setDepartureTime(flight.getDepartureTime().toString());
+            response.setArrivalTime(flight.getArrivalTime().toString());
+            response.setNonBusinessClassSeats(flight.getNonBusinessClassSeats());
+            response.setBusinessClassSeats(flight.getBusinessClassSeats());
+            response.setAircraftType(flight.getAircraftType());
+            response.setStatus(flight.getStatus());
+            return response;
         }).collect(Collectors.toList());
     }
 
     public Flight addFlight(Flight flight) {
+        if (flight.getStatus() == null) {
+            flight.setStatus(FlightStatus.AVAILABLE);
+        }
         return flightRepository.save(flight);
     }
 
@@ -84,5 +90,12 @@ public class FlightService {
 
         airline.setStatus(AirlineStatus.ACTIVE);
         airlineRepository.save(airline);
+    }
+
+    public Airline registerAirline(Airline airline) {
+        if (airline.getStatus() == null) {
+            airline.setStatus(AirlineStatus.ACTIVE);
+        }
+        return airlineRepository.save(airline);
     }
 }

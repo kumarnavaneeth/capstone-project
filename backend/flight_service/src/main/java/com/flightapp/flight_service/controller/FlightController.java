@@ -2,6 +2,7 @@ package com.flightapp.flight_service.controller;
 
 import com.flightapp.flight_service.dto.FlightResponse;
 import com.flightapp.flight_service.dto.SearchRequest;
+import com.flightapp.flight_service.entity.Airline;
 import com.flightapp.flight_service.entity.Flight;
 import com.flightapp.flight_service.enums.FlightStatus;
 import com.flightapp.flight_service.service.FlightService;
@@ -10,7 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -32,14 +32,11 @@ public class FlightController {
     public List<FlightResponse> searchFlights(@Valid @RequestBody SearchRequest request) {
         return flightService.searchFlights(request);
     }
+    @PostMapping public ResponseEntity<Flight> addFlight(@Valid @RequestBody Flight flight) { 
+    Flight savedFlight = flightService.addFlight(flight); 
+    return new ResponseEntity<>(savedFlight, HttpStatus.CREATED); }
 
-    @PostMapping
-    public ResponseEntity<Flight> addFlight(@RequestBody Flight flight) {
-        Flight savedFlight = flightService.addFlight(flight);
-        return new ResponseEntity<>(savedFlight, HttpStatus.CREATED);
-    }
-
-    @PutMapping("/{flightId}/status")
+    @PostMapping("/{flightId}/status")
     public ResponseEntity<String> updateFlightStatus(
             @PathVariable Long flightId,
             @RequestParam FlightStatus status) {
@@ -48,15 +45,21 @@ public class FlightController {
         return ResponseEntity.ok("Flight status updated successfully");
     }
 
-    @PutMapping("/airline/{airlineId}/block")
+    @PostMapping("/airline/{airlineId}/block")
     public ResponseEntity<String> blockAirline(@PathVariable Long airlineId) {
         flightService.blockAirline(airlineId);
         return ResponseEntity.ok("Airline blocked successfully");
     }
 
-    @PutMapping("/airline/{airlineId}/activate")
+    @PostMapping("/airline/{airlineId}/activate")
     public ResponseEntity<String> activateAirline(@PathVariable Long airlineId) {
         flightService.activateAirline(airlineId);
         return ResponseEntity.ok("Airline activated successfully");
     }
+    @PostMapping("/airline/register")
+    public ResponseEntity<Airline> registerAirline(@Valid @RequestBody Airline airline){
+    	Airline savedAirline = flightService.registerAirline(airline);
+    	return new ResponseEntity<>(savedAirline,HttpStatus.CREATED);
+    }
+    
 }

@@ -23,10 +23,12 @@ public class SearchRequest {
     private String destination;
 
     @NotNull(message = "{travel.date.required}")
-    @FutureOrPresent(message = "{travel.date.invalid}")
+    @FutureOrPresent(message = "${travel.date.invalid}")
     private LocalDate travelDate;
 
     @NotNull(message = "{travellers.required}")
     @Min(value = 1, message = "{travellers.min}")
     private Integer numberOfTravellers;
+    
+    
 }
