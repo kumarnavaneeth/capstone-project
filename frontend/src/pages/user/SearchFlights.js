@@ -4,6 +4,7 @@ import { airports } from "../../data/airports";
 
 function SearchFlights() {
   const navigate = useNavigate();
+
   const [source, setSource] = useState("");
   const [destination, setDestination] = useState("");
   const [date, setDate] = useState("");
@@ -26,6 +27,22 @@ function SearchFlights() {
     setShowResults(true);
   };
 
+const handleBooking = (flight) => {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    alert("Please login first");
+    navigate("/login");
+    return;
+  }
+
+  navigate("/booking", {
+    state: {
+      flight,
+      passengers,
+    },
+  });
+};
   const flights = [
     { airline: "IndiGo", from: source, to: destination, depart: "06:00", arrive: "07:30", duration: "1h 30m", price: "₹4,399" },
     { airline: "Air India", from: source, to: destination, depart: "09:00", arrive: "10:45", duration: "1h 45m", price: "₹4,199" },
@@ -38,8 +55,9 @@ function SearchFlights() {
         <h2 style={{ textAlign: "center" }}>Search Flights</h2>
 
         <form onSubmit={handleSearch} style={{ display: "flex", gap: "15px", marginTop: "20px", flexWrap: "wrap", justifyContent: "space-between" }}>
+          
           <div>
-            <label style={{ fontWeight: "600" }}>From</label><br />
+            <label style={{ fontWeight: "600", fontSize: "16px" }}>From</label><br />
             <select value={source} onChange={(e) => setSource(e.target.value)}>
               <option value="">Source</option>
               {airports.map((a, i) => (
@@ -51,7 +69,7 @@ function SearchFlights() {
           </div>
 
           <div>
-            <label style={{ fontWeight: "600" }}>To</label><br />
+            <label style={{ fontWeight: "600", fontSize: "16px" }}>To</label><br />
             <select value={destination} onChange={(e) => setDestination(e.target.value)}>
               <option value="">Destination</option>
               {airports.map((a, i) => (
@@ -63,20 +81,21 @@ function SearchFlights() {
           </div>
 
           <div>
-            <label style={{ fontWeight: "600" }}>Departure</label><br />
+            <label style={{ fontWeight: "600", fontSize: "16px" }}>Departure</label><br />
             <input
               type="date"
               value={date}
+              min={new Date().toISOString().split("T")[0]}
               onChange={(e) => setDate(e.target.value)}
             />
           </div>
 
           <div>
-            <label style={{ fontWeight: "600" }}>Passengers</label><br />
-            <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-              <button type="button" onClick={() => setPassengers((p) => Math.max(1, p - 1))}>−</button>
+            <label style={{ fontWeight: "600", fontSize: "16px" }}>Passengers</label><br />
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", border: "1px solid #ccc", padding: "5px 10px", borderRadius: "5px" }}>
+              <button type="button" onClick={() => setPassengers(p => Math.max(1, p - 1))}>−</button>
               <span>{passengers}</span>
-              <button type="button" onClick={() => setPassengers((p) => p + 1)}>+</button>
+              <button type="button" onClick={() => setPassengers(p => p + 1)}>+</button>
             </div>
           </div>
 
@@ -84,7 +103,7 @@ function SearchFlights() {
             <button
               type="submit"
               style={{
-                padding: "8px 16px",
+                padding: "10px 20px",
                 backgroundColor: "#003580",
                 color: "white",
                 border: "none",
@@ -95,6 +114,7 @@ function SearchFlights() {
               Search
             </button>
           </div>
+
         </form>
       </div>
 
@@ -102,6 +122,7 @@ function SearchFlights() {
         <div style={{ width: "90%", maxWidth: "1000px", marginTop: "30px" }}>
           {flights.map((f, i) => {
             const total = passengers * parseInt(f.price.replace(/[₹,]/g, ""));
+
             return (
               <div
                 key={i}
@@ -156,7 +177,7 @@ function SearchFlights() {
                   </div>
 
                   <button
-                    onClick={() => navigate("/booking")}
+                    onClick={() => handleBooking(f)}
                     style={{
                       marginTop: "10px",
                       padding: "8px 16px",
