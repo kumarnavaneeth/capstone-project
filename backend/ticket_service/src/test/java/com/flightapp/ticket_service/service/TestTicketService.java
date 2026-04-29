@@ -243,7 +243,7 @@ class TestTicketService {
 	}
 
 	@Test
-	void testcancelTicketSuccessfully() {
+	void testCancelTicketSuccessfully() {
 		passengers.add(firstPassenger);
 		passengers.add(secondPassenger);
 		booking.setBookingId(10L);
@@ -253,7 +253,7 @@ class TestTicketService {
 		booking.setPassengers(passengers);
 		when(ticketRepository.findByPnr("FL123456")).thenReturn(Optional.of(booking));
 		Map<String, Object> flight = new HashMap<>();
-		flight.put("available_seats",5);
+		flight.put("available_seats", 5);
 		flight.put("departure_time", LocalDateTime.now().plusDays(2).toString());
 		Map<String, Object>[] flights = new Map[] { flight };
 		when(restTemplate.getForObject(contains("?flight_id=100"), any(Class.class))).thenReturn(flights);
@@ -285,5 +285,36 @@ class TestTicketService {
 		assertEquals(7, flight.get("available_seats"));
 		verify(ticketRepository, times(1)).save(any(Booking.class));
 		verify(restTemplate, times(1)).put(any(String.class), any());
+	}
+
+	@Test
+	void testCancelTicketWithinTwentyFourHourOfDeparture() {
+		passengers.add(firstPassenger);
+		booking.setBookingId(10L);
+		booking.setPnr("FL123456");
+		booking.setFlightId(100L);
+		booking.setStatus(BookingStatus.CONFIRMED);
+		booking.setPassengers(passengers);
+		when(ticketRepository.findByPnr("FL123456")).thenReturn(Optional.of(booking));
+		Map<String, Object> flight = new HashMap<>();
+		flight.put("available_seats", 5);
+		flight.put("departure_time", LocalDateTime.now().plusHours(5).toString());
+		Map<String, Object>[] flights = new Map[] { flight };
+		when(restTemplate.getForObject(contains("?flight_id=100"), any(Class.class))).thenReturn(flights);
+		assertThrows(InvalidBookingException.class, () -> {
+			ticketService.cancelTicketByPnr("FL123456");
+		});
+		verify(ticketRepository, never()).save(any(Booking.class));
+		verify(restTemplate, never()).put(any(String.class), any());
+	}
+
+	@Test
+	void testCancelTicketWithInvalidPnr() {
+		when(ticketRepository.findByPnr("FL123412")).thenReturn(Optional.empty());
+		assertThrows(TicketNotFoundException.class, () -> {
+			ticketService.cancelTicketByPnr("FL123412");
+		});
+		verify(ticketRepository, never()).save(any(Booking.class));
+		verify(restTemplate, never()).getForObject(any(String.class), any());
 	}
 }
