@@ -1,5 +1,4 @@
 const jwt = require('jsonwebtoken');
-const { request } = require('../app');
 require("dotenv").config();
 exports.verifyToken = (request, response, next) => {
     const authHeader = request.headers["authorization"];
@@ -8,11 +7,11 @@ exports.verifyToken = (request, response, next) => {
         return response.status(401).json({ message: "Access denied. No token provided." });
     }
     try {
-        constdecoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
         request.user = decoded;
         next();
     } catch (error) {
-        if (error.name === "TokenExpriredError") {
+        if (error.name === "TokenExpiredError") {
             return response.status(401).json({ message: "Token expired. Please login again." });
         }
         return response.status(403).json({ message: "Invalid token." });
