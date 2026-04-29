@@ -5,12 +5,16 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -18,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.web.client.RestTemplate;
 
 import com.flightapp.ticket_service.entity.Booking;
 import com.flightapp.ticket_service.entity.BookingStatus;
@@ -34,7 +39,8 @@ class TestTicketService {
 
 	@Mock
 	TicketRepository ticketRepository;
-
+	@Mock
+	RestTemplate restTemplate;
 	Booking booking;
 	Passenger firstPassenger;
 	Passenger secondPassenger;
@@ -65,6 +71,10 @@ class TestTicketService {
 		passengers.add(firstPassenger);
 		passengers.add(secondPassenger);
 		booking.setPassengers(passengers);
+		Map<String, Object> flight = new HashMap<>();
+		flight.put("available_seats", 10);
+		Map<String, Object>[] flights = new Map[] { flight };
+		when(restTemplate.getForObject(contains("?flight_id=100"), any(Class.class))).thenReturn(flights);
 		when(ticketRepository.save(any(Booking.class))).thenReturn(booking);
 		Booking result = ticketService.bookTicket(100L, booking);
 		assertNotNull(result);
@@ -82,6 +92,10 @@ class TestTicketService {
 		passengers.add(firstPassenger);
 		passengers.add(secondPassenger);
 		booking.setPassengers(passengers);
+		Map<String, Object> flight = new HashMap<>();
+		flight.put("available_seats", 10);
+		Map<String, Object>[] flights = new Map[] { flight };
+		when(restTemplate.getForObject(contains("?flight_id=100"), any(Class.class))).thenReturn(flights);
 		when(ticketRepository.save(any(Booking.class))).thenReturn(booking);
 		Booking result = ticketService.bookTicket(100L, booking);
 		assertNotNull(result);
@@ -94,11 +108,15 @@ class TestTicketService {
 	void testBookingWithSinglePassenger() {
 		passengers.add(firstPassenger);
 		booking.setPassengers(passengers);
+		Map<String, Object> flight = new HashMap<>();
+		flight.put("available_seats", 10);
+		Map<String, Object>[] flights = new Map[] { flight };
+		when(restTemplate.getForObject(contains("?flight_id=101"), any(Class.class))).thenReturn(flights);
 		when(ticketRepository.save(any(Booking.class))).thenReturn(booking);
-		Booking result = ticketService.bookTicket(110L, booking);
+		Booking result = ticketService.bookTicket(101L, booking);
 		assertNotNull(result);
 		assertEquals(10L, result.getBookingId());
-		assertEquals(110L, result.getFlightId());
+		assertEquals(101L, result.getFlightId());
 		assertEquals(BookingStatus.CONFIRMED, result.getStatus());
 		assertNotNull(result.getPnr());
 		assertEquals(booking, firstPassenger.getBooking());
@@ -175,4 +193,39 @@ class TestTicketService {
 		});
 	}
 
+	@Test
+	void testBookingWithAvailableSeatsReducedSuccessfully() {
+		passengers.add(firstPassenger);
+		passengers.add(secondPassenger);
+		booking.setPassengers(passengers);
+		Map<String, Object> flight = new HashMap<>();
+		flight.put("available_seats", 10);
+		Map<String, Object>[] flights = new Map[] { flight };
+		when(restTemplate.getForObject(contains("?flight_id=100"), any(Class.class))).thenReturn(flights);
+		when(ticketRepository.save(any(Booking.class))).thenReturn(booking);
+		Booking result = ticketService.bookTicket(100L, booking);
+		assertNotNull(result);
+		assertEquals(10L, result.getBookingId());
+		assertEquals(booking, firstPassenger.getBooking());
+		assertEquals(booking, secondPassenger.getBooking());
+		assertEquals(8, flight.get("available_seats"));
+		verify(restTemplate, times(1)).put(any(String.class), any());
+		verify(ticketRepository, times(1)).save(any(Booking.class));
+	}
+
+	@Test
+	void testBookingWithNotEnoughSeatsAvaibale() {
+		passengers.add(firstPassenger);
+		passengers.add(secondPassenger);
+		booking.setPassengers(passengers);
+		Map<String, Object> flight = new HashMap<>();
+		flight.put("available_seats", 1);
+		Map<String, Object>[] flights = new Map[] { flight };
+		when(restTemplate.getForObject(contains("?flight_id=100"), any(Class.class))).thenReturn(flights);
+		assertThrows(InvalidBookingException.class,()->{
+			ticketService.bookTicket(100L,booking);
+		});
+		verify(ticketRepository,never()).save(any(Booking.class));
+		verify(restTemplate,never()).put(any(String.class),any());
+	}
 }
