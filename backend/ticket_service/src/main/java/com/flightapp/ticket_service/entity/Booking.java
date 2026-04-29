@@ -15,8 +15,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -39,7 +37,5 @@ public class Booking {
 	@OneToMany(mappedBy = "booking", cascade = CascadeType.ALL)
 	@JsonManagedReference
 	@Valid
-	@NotNull
-	@NotEmpty
 	private List<Passenger> passengers;
 }
