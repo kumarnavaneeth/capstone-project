@@ -26,11 +26,8 @@ public class TicketService {
 	private String flightServiceUrl;
 
 	public Booking bookTicket(Long flightId, Booking booking) {
-		if (booking == null) {
-			throw new InvalidBookingException("Booking cannot be null");
-		}
-		if (flightId == null || flightId <= 0) {
-			throw new InvalidBookingException("Invalid flightId");
+		if(booking.getPassengers()==null || booking.getPassengers().isEmpty()) {
+			throw new InvalidBookingException("at least one passenger is required");
 		}
 		Map<String, Object>[] flights = restTemplate.getForObject(flightServiceUrl + "?flight_id=" + flightId,
 				Map[].class);
@@ -57,11 +54,10 @@ public class TicketService {
 		}
 		return ticketRepository.save(booking);
 	}
-
 	public String generatePnr() {
-		return "FL" + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+		return "FL"+UUID.randomUUID().toString().substring(0,6).toUpperCase();
 	}
-
+	
 	public Booking getTicketByPnr(String pnr) {
 		return ticketRepository.findByPnr(pnr).orElseThrow(() -> new TicketNotFoundException(""));
 	}
