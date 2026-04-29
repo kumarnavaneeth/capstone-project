@@ -46,7 +46,8 @@ function SearchFlights() {
   const flights = [
     { airline: "IndiGo", from: source, to: destination, depart: "06:00", arrive: "07:30", duration: "1h 30m", price: "₹4,399" },
     { airline: "Air India", from: source, to: destination, depart: "09:00", arrive: "10:45", duration: "1h 45m", price: "₹4,199" },
-    { airline: "SpiceJet", from: source, to: destination, depart: "18:00", arrive: "19:30", duration: "1h 30m", price: "₹4,599" }
+    { airline: "SpiceJet", from: source, to: destination, depart: "18:00", arrive: "19:30", duration: "1h 30m", price: "₹4,599" },
+    { airline: "lufthansa", from: source, to: destination, depart: "21:00", arrive: "22:45", duration: "1h 45m", price: "₹6,399" }
   ];
 
   return (

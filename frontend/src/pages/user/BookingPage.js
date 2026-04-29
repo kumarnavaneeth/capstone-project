@@ -25,6 +25,7 @@ function BookingPage() {
 
   const price = Number(flight?.price.replace(/[₹,]/g, "")) || 0;
   const total = price * count;
+  
 
   return (
     <div style={{ padding: "30px", maxWidth: "900px", margin: "auto" }}>
