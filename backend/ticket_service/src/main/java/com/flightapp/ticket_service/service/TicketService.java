@@ -29,6 +29,19 @@ public class TicketService {
 		if(booking.getPassengers()==null || booking.getPassengers().isEmpty()) {
 			throw new InvalidBookingException("at least one passenger is required");
 		}
+		Map<String, Object>[] flights = restTemplate.getForObject(flightServiceUrl + "?flight_id=" + flightId,
+				Map[].class);
+		if (flights == null || flights.length == 0) {
+			throw new InvalidBookingException("Flight not found");
+		}
+		Map<String, Object> flight = flights[0];
+		Integer availableSeats = (Integer) flight.get("available_seats");
+		int bookedSeats = booking.getPassengers().size();
+		if (availableSeats < bookedSeats) {
+			throw new InvalidBookingException("Not enough seats available");
+		}
+		flight.put("available_seats", availableSeats - bookedSeats);
+		restTemplate.put(flightServiceUrl + "/" + flightId, flight);
 		booking.setFlightId(flightId);
 		booking.setUserId(101L);
 		booking.setStatus(BookingStatus.CONFIRMED);
@@ -62,6 +75,10 @@ public class TicketService {
 		String flightDepartureTime = (String) flight.get("departure_time");
 		LocalDateTime departureTime = LocalDateTime.parse(flightDepartureTime);
 		if (departureTime.isAfter(LocalDateTime.now().plusHours(24))) {
+			Integer availableSeats = (Integer) flight.get("available_seats");
+			int cancelledSeats = booking.getPassengers().size();
+			flight.put("available_seats", availableSeats + cancelledSeats);
+			restTemplate.put(flightServiceUrl + "/" + flightId, flight);
 			booking.setStatus(BookingStatus.CANCELLED);
 			ticketRepository.save(booking);
 		} else {
