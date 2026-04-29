@@ -11,6 +11,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -222,10 +223,67 @@ class TestTicketService {
 		flight.put("available_seats", 1);
 		Map<String, Object>[] flights = new Map[] { flight };
 		when(restTemplate.getForObject(contains("?flight_id=100"), any(Class.class))).thenReturn(flights);
-		assertThrows(InvalidBookingException.class,()->{
-			ticketService.bookTicket(100L,booking);
+		assertThrows(InvalidBookingException.class, () -> {
+			ticketService.bookTicket(100L, booking);
 		});
-		verify(ticketRepository,never()).save(any(Booking.class));
-		verify(restTemplate,never()).put(any(String.class),any());
+		verify(ticketRepository, never()).save(any(Booking.class));
+		verify(restTemplate, never()).put(any(String.class), any());
+	}
+
+	@Test
+	void testCancelTicketThatAlreadyCancelled() {
+		booking.setPnr("FL123456");
+		booking.setStatus(BookingStatus.CANCELLED);
+		when(ticketRepository.findByPnr("FL123456")).thenReturn(Optional.of(booking));
+		assertThrows(InvalidBookingException.class, () -> {
+			ticketService.cancelTicketByPnr("FL123456");
+		});
+		verify(restTemplate, never()).getForObject(any(String.class), any());
+		verify(ticketRepository, never()).save(any(Booking.class));
+	}
+
+	@Test
+	void testcancelTicketSuccessfully() {
+		passengers.add(firstPassenger);
+		passengers.add(secondPassenger);
+		booking.setBookingId(10L);
+		booking.setPnr("FL123456");
+		booking.setFlightId(100L);
+		booking.setStatus(BookingStatus.CONFIRMED);
+		booking.setPassengers(passengers);
+		when(ticketRepository.findByPnr("FL123456")).thenReturn(Optional.of(booking));
+		Map<String, Object> flight = new HashMap<>();
+		flight.put("available_seats",5);
+		flight.put("departure_time", LocalDateTime.now().plusDays(2).toString());
+		Map<String, Object>[] flights = new Map[] { flight };
+		when(restTemplate.getForObject(contains("?flight_id=100"), any(Class.class))).thenReturn(flights);
+		when(ticketRepository.save(any(Booking.class))).thenReturn(booking);
+		ticketService.cancelTicketByPnr("FL123456");
+		assertEquals(BookingStatus.CANCELLED, booking.getStatus());
+		verify(ticketRepository, times(1)).save(any(Booking.class));
+		verify(restTemplate, times(1)).put(any(String.class), any());
+	}
+
+	@Test
+	void testSeatUpdationWithcancelTicket() {
+		passengers.add(firstPassenger);
+		passengers.add(secondPassenger);
+		booking.setBookingId(10L);
+		booking.setPnr("FL123456");
+		booking.setFlightId(100L);
+		booking.setStatus(BookingStatus.CONFIRMED);
+		booking.setPassengers(passengers);
+		when(ticketRepository.findByPnr("FL123456")).thenReturn(Optional.of(booking));
+		Map<String, Object> flight = new HashMap<>();
+		flight.put("available_seats", 5);
+		flight.put("departure_time", LocalDateTime.now().plusDays(2).toString());
+		Map<String, Object>[] flights = new Map[] { flight };
+		when(restTemplate.getForObject(contains("?flight_id=100"), any(Class.class))).thenReturn(flights);
+		when(ticketRepository.save(any(Booking.class))).thenReturn(booking);
+		ticketService.cancelTicketByPnr("FL123456");
+		assertEquals(BookingStatus.CANCELLED, booking.getStatus());
+		assertEquals(7, flight.get("available_seats"));
+		verify(ticketRepository, times(1)).save(any(Booking.class));
+		verify(restTemplate, times(1)).put(any(String.class), any());
 	}
 }
