@@ -86,4 +86,81 @@ public class FlightServiceTest {
         List<FlightResponse> results = flightService.searchFlights(request);
         assertTrue(results.isEmpty());
     }
+    @Test
+    void testSearchFlightsBlockedAirline() {
+        SearchRequest request = new SearchRequest();
+        request.setSource("MANGALORE");
+        request.setDestination("KASARAGOD");
+        request.setTravelDate(LocalDate.of(2026, 5, 1));
+        Flight flight = new Flight();
+        flight.setAirlineName("EMIRATES");
+        Airline airline = new Airline();
+        airline.setStatus(AirlineStatus.BLOCKED);
+        when(flightRepository.searchFlights(
+                request.getSource(),
+                request.getDestination(),
+                request.getTravelDate(),
+                FlightStatus.AVAILABLE))
+                .thenReturn(List.of(flight));
+        when(airlineRepository.findByAirlineName("EMIRATES"))
+                .thenReturn(Optional.of(airline));
+        assertThrows(RuntimeException.class,
+                () -> flightService.searchFlights(request));
+    }
+    @Test
+    void testUpdateFlightStatus() {
+        Flight flight = new Flight();
+        flight.setStatus(FlightStatus.AVAILABLE);
+        when(flightRepository.findById(1L)).thenReturn(Optional.of(flight));
+        when(flightRepository.save(flight)).thenReturn(flight);
+        flightService.updateFlightStatus(1L, FlightStatus.CANCELLED);
+        assertEquals(FlightStatus.CANCELLED, flight.getStatus());
+        verify(flightRepository).save(flight);
+    }
+    @Test
+    void testActivateAirlineSuccess() {
+        Airline airline = new Airline();
+        airline.setStatus(AirlineStatus.BLOCKED);
+        when(airlineRepository.findById(1L)).thenReturn(Optional.of(airline));
+        when(airlineRepository.save(airline)).thenReturn(airline);
+        flightService.activateAirline(1L);
+        assertEquals(AirlineStatus.ACTIVE, airline.getStatus());
+        verify(airlineRepository).save(airline);
+    }
+    @Test
+    void testAddFlightWithExistingStatus() {
+        Flight flight = new Flight();
+        flight.setStatus(FlightStatus.CANCELLED);
+        when(flightRepository.save(flight)).thenReturn(flight);
+        Flight result = flightService.addFlight(flight);
+        assertEquals(FlightStatus.CANCELLED, result.getStatus());
+        verify(flightRepository).save(flight);
+    }
+    @Test
+    void testBlockAirlineNotFound() {
+        when(airlineRepository.findById(99L)).thenReturn(Optional.empty());
+
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> flightService.blockAirline(99L));
+
+        assertEquals("Airline not found", ex.getMessage());
+    }
+    @Test
+    void testActivateAirlineNotFound() {
+        when(airlineRepository.findById(99L)).thenReturn(Optional.empty());
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> flightService.activateAirline(99L));
+        assertEquals("Airline not found", ex.getMessage());
+    }
+    @Test
+    void testRegisterAirlineWithExistingStatus() {
+        Airline airline = new Airline();
+        airline.setStatus(AirlineStatus.BLOCKED);
+        when(airlineRepository.save(any(Airline.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        Airline result = flightService.registerAirline(airline);
+        assertEquals(AirlineStatus.BLOCKED, result.getStatus());
+        verify(airlineRepository).save(result);
+    }
+
+  
 }
