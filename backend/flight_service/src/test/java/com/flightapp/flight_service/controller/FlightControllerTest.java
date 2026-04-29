@@ -30,6 +30,9 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(MockitoExtension.class)
 public class FlightControllerTest {
@@ -122,4 +125,102 @@ public class FlightControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.airlineName").value("Indigo"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.status").value("ACTIVE"));
     }
+    @Test
+    public void testAddFlight_Success() throws Exception {
+        Flight flight = new Flight();
+        flight.setAirlineName("TestAir");
+        doReturn(flight).when(flightService).addFlight(any(Flight.class));
+
+        String flightJson = """
+        {
+          "airlineName":"TestAir",
+          "flightNumber":"TA123",
+          "source":"DELHI",
+          "destination":"MUMBAI",
+          "aircraftType":"Boeing737"
+        }
+        """;
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1.0/flight")
+                .contentType("application/json")
+                .content(flightJson))
+                .andExpect(MockMvcResultMatchers.status().isCreated())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.airlineName").value("TestAir"));
+    }
+    @Test
+    public void testUpdateFlightStatus_Failure() throws Exception{
+    	doThrow(new RuntimeException("Flight not found"))
+    	.when(flightService).updateFlightStatus(anyLong(), any());
+    	mockMvc.perform(MockMvcRequestBuilders.post("/api/v1.0/flight/1/status?status=CANCELLED"))
+    			.andExpect(MockMvcResultMatchers.status().isInternalServerError())
+    			.andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Flight not found"));
+    }
+    @Test
+    public void testSearchFlights_NoResults() throws Exception{
+    	doReturn(List.of()).when(flightService).searchFlights(any(SearchRequest.class));
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1.0/flight/search")
+                .contentType("application/json")
+                .content("{\"source\":\"DELHI\", \"destination\":\"MUMBAI\", \"travelDate\":\"2026-05-01\", \"numberOfTravellers\": 1}"))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.length()").value(0));
+    }
+    @Test
+    public void testBlockAirline_Success() throws Exception{
+    	long airlineID = 1L;
+    	mockMvc.perform(post("/api/v1.0/flight/airline/{airlineId}/block", airlineID))
+    	.andExpect(status().isOk())
+    	.andExpect(jsonPath("$").value("Airline blocked successfully"));
+    }
+    @Test
+    public void testActivateAirline_Failure()throws Exception{
+    	doThrow(new RuntimeException("Airline not found"))
+    	.when(flightService).activateAirline(anyLong());
+    	mockMvc.perform(post("/api/v1.0/flight/airline/99/activate"))
+    	.andExpect(status().isInternalServerError())
+    	.andExpect(jsonPath("$.message").value("Airline not found"));
+    }
+    @Test
+    public void testRegisterAirlineSuccess() throws Exception{
+    	Airline airline = new Airline();
+    	airline.setAirlineName("Indigo");
+    	airline.setContactNumber("9876543210");
+        airline.setHeadquarters("");
+        airline.setStatus(AirlineStatus.ACTIVE);
+
+        doReturn(airline).when(flightService).registerAirline(any());
+        String airlineJson = """
+        {
+          "airlineName":"Indigo",
+          "contactNumber":"9876543210",
+          "headquarters":"gurugram"
+        }
+        """;
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1.0/flight/airline/register")
+                .contentType("application/json")
+                .content(airlineJson))
+                .andExpect(MockMvcResultMatchers.status().isCreated())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.airlineName").value("Indigo"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value("ACTIVE"));
+    }
+    @Test
+    public void testRegisterAirline_Failure() throws Exception {
+        doThrow(new RuntimeException("Failed to register airline"))
+                .when(flightService).registerAirline(any());
+        String airlineJson = """
+        {
+          "airlineName":"Indigo",
+          "contactNumber":"9876543210",
+          "headquarters":"gurugram"
+        }
+        """;
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1.0/flight/airline/register")
+                .contentType("application/json")
+                .content(airlineJson))
+                .andExpect(MockMvcResultMatchers.status().isInternalServerError())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Failed to register airline"));
+    }
+    	
+ 
 }
+
+
