@@ -1,11 +1,11 @@
-package com.flightapp.ticket_service;
+package com.flightapp.flight_service;
 
 import org.junit.platform.suite.api.SelectPackages;
 import org.junit.platform.suite.api.Suite;
 import org.junit.platform.suite.api.SuiteDisplayName;
 
 @Suite
-@SuiteDisplayName("MyTestSuite")
-@SelectPackages("com.flightapp.ticket_service")
-class TestSuite {
+@SuiteDisplayName("Flight Service Test Suite")
+@SelectPackages("com.flightapp.flight_service")
+public class TestSuite {
 }
