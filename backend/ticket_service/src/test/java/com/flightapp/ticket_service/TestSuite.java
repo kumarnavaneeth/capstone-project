@@ -5,7 +5,8 @@ import org.junit.platform.suite.api.Suite;
 import org.junit.platform.suite.api.SuiteDisplayName;
 
 @Suite
-@SuiteDisplayName("MyTestSuite")
+@SuiteDisplayName("Ticket Service Test Suite")
 @SelectPackages("com.flightapp.ticket_service")
-class TestSuite {
+public class TestSuite {
+
 }

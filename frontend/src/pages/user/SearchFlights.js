@@ -4,7 +4,6 @@ import { airports } from "../../data/airports";
 
 function SearchFlights() {
   const navigate = useNavigate();
-
   const [source, setSource] = useState("");
   const [destination, setDestination] = useState("");
   const [date, setDate] = useState("");
@@ -19,34 +18,38 @@ function SearchFlights() {
       return;
     }
 
-    if (source === destination) {
-      alert("Source and destination cannot be the same");
-      return;
-    }
-
     setShowResults(true);
   };
 
-const handleBooking = (flight) => {
-  const token = localStorage.getItem("token");
+  const handleBooking = (flight) => {
+    const token = localStorage.getItem("token");
 
-  if (!token) {
-    alert("Please login first");
-    navigate("/login");
-    return;
-  }
+    if (!token) {
+      navigate("/login", {
+        state: {
+          redirectTo: "/booking",
+          flight,
+          passengers,
+        },
+      });
+      return;
+    }
 
-  navigate("/booking", {
-    state: {
-      flight,
-      passengers,
-    },
-  });
-};
+    navigate("/booking", {
+      state: {
+        flight,
+        passengers,
+      },
+    });
+  };
+
   const flights = [
     { airline: "IndiGo", from: source, to: destination, depart: "06:00", arrive: "07:30", duration: "1h 30m", price: "₹4,399" },
     { airline: "Air India", from: source, to: destination, depart: "09:00", arrive: "10:45", duration: "1h 45m", price: "₹4,199" },
-    { airline: "SpiceJet", from: source, to: destination, depart: "18:00", arrive: "19:30", duration: "1h 30m", price: "₹4,599" }
+    { airline: "SpiceJet", from: source, to: destination, depart: "18:00", arrive: "19:30", duration: "1h 30m", price: "₹4,599" },
+    { airline: "lufthansa", from: source, to: destination, depart: "21:00", arrive: "22:45", duration: "1h 45m", price: "₹6,399" },
+    { airline: "Air India Express", from: source, to: destination, depart: "10:00", arrive: "11:00", duration: "1h 00m", price: "₹9,999" }
+
   ];
 
   return (
@@ -55,7 +58,7 @@ const handleBooking = (flight) => {
         <h2 style={{ textAlign: "center" }}>Search Flights</h2>
 
         <form onSubmit={handleSearch} style={{ display: "flex", gap: "15px", marginTop: "20px", flexWrap: "wrap", justifyContent: "space-between" }}>
-          
+
           <div>
             <label style={{ fontWeight: "600", fontSize: "16px" }}>From</label><br />
             <select value={source} onChange={(e) => setSource(e.target.value)}>
@@ -72,11 +75,13 @@ const handleBooking = (flight) => {
             <label style={{ fontWeight: "600", fontSize: "16px" }}>To</label><br />
             <select value={destination} onChange={(e) => setDestination(e.target.value)}>
               <option value="">Destination</option>
-              {airports.map((a, i) => (
-                <option key={i} value={a.code}>
-                  {a.city} ({a.code})
-                </option>
-              ))}
+              {airports
+                .filter((a) => a.code !== source)
+                .map((a, i) => (
+                  <option key={i} value={a.code}>
+                    {a.city} ({a.code})
+                  </option>
+                ))}
             </select>
           </div>
 
@@ -100,17 +105,7 @@ const handleBooking = (flight) => {
           </div>
 
           <div style={{ display: "flex", alignItems: "flex-end" }}>
-            <button
-              type="submit"
-              style={{
-                padding: "10px 20px",
-                backgroundColor: "#003580",
-                color: "white",
-                border: "none",
-                borderRadius: "5px",
-                cursor: "pointer"
-              }}
-            >
+            <button type="submit" style={{ padding: "10px 20px", backgroundColor: "#003580", color: "white", border: "none", borderRadius: "5px", cursor: "pointer" }}>
               Search
             </button>
           </div>
@@ -122,73 +117,33 @@ const handleBooking = (flight) => {
         <div style={{ width: "90%", maxWidth: "1000px", marginTop: "30px" }}>
           {flights.map((f, i) => {
             const total = passengers * parseInt(f.price.replace(/[₹,]/g, ""));
-
             return (
-              <div
-                key={i}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  padding: "20px",
-                  marginBottom: "15px",
-                  backgroundColor: "white",
-                  borderRadius: "10px",
-                  boxShadow: "0 2px 6px rgba(0,0,0,0.1)"
-                }}
-              >
-                <div style={{ width: "20%", fontSize: "18px", fontWeight: "600" }}>
-                  {f.airline}
-                </div>
+              <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px", marginBottom: "15px", backgroundColor: "white", borderRadius: "10px", boxShadow: "0 2px 6px rgba(0,0,0,0.1)" }}>
+                <div style={{ width: "20%", fontSize: "18px", fontWeight: "600" }}>{f.airline}</div>
 
                 <div style={{ width: "50%", textAlign: "center" }}>
-                  <div style={{ fontSize: "18px", fontWeight: "600" }}>
-                    {f.from} → {f.to}
-                  </div>
-
-                  <div style={{ margin: "8px 0", color: "#555" }}>
-                    ───────── ✈ ─────────
-                  </div>
+                  <div style={{ fontSize: "18px", fontWeight: "600" }}>{f.from} → {f.to}</div>
+                  <div style={{ margin: "8px 0", color: "#555" }}>───────── ✈ ─────────</div>
 
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: "14px" }}>
                     <div>
                       <div>{f.depart}</div>
                       <div>{f.from}</div>
                     </div>
-
                     <div>
                       <div>{f.arrive}</div>
                       <div>{f.to}</div>
                     </div>
                   </div>
 
-                  <div style={{ marginTop: "5px", fontSize: "13px", color: "gray" }}>
-                    {f.duration}
-                  </div>
+                  <div style={{ marginTop: "5px", fontSize: "13px", color: "gray" }}>{f.duration}</div>
                 </div>
 
                 <div style={{ width: "25%", textAlign: "right" }}>
-                  <div style={{ fontSize: "18px", fontWeight: "600" }}>
-                    ₹{f.price.replace(/[₹,]/g, "")}
-                  </div>
+                  <div style={{ fontSize: "18px", fontWeight: "600" }}>₹{f.price.replace(/[₹,]/g, "")}</div>
+                  <div style={{ fontSize: "13px", color: "gray" }}>₹{total.toLocaleString()} total</div>
 
-                  <div style={{ fontSize: "13px", color: "gray" }}>
-                    ₹{total.toLocaleString()} total
-                  </div>
-
-                  <button
-                    onClick={() => handleBooking(f)}
-                    style={{
-                      marginTop: "10px",
-                      padding: "8px 16px",
-                      backgroundColor: "#003580",
-                      color: "white",
-                      border: "none",
-                      borderRadius: "6px",
-                      cursor: "pointer",
-                      width: "100%"
-                    }}
-                  >
+                  <button onClick={() => handleBooking(f)} style={{ marginTop: "10px", padding: "8px 16px", backgroundColor: "#003580", color: "white", border: "none", borderRadius: "6px", cursor: "pointer", width: "100%" }}>
                     Book
                   </button>
                 </div>

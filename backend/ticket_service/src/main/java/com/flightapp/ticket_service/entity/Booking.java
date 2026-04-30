@@ -38,8 +38,8 @@ public class Booking {
 	private BookingStatus status;
 	@OneToMany(mappedBy = "booking", cascade = CascadeType.ALL)
 	@JsonManagedReference
-	@Valid
 	@NotNull
 	@NotEmpty
+	@Valid
 	private List<Passenger> passengers;
 }

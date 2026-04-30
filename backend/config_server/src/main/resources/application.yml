@@ -1,0 +1,20 @@
+server:
+  port: 8888
+
+spring:
+  application:
+    name: config-server
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/anoushkatraining-source/config_repo.git
+          clone-on-start: true
+          default-label: main
+
+encrypt:
+  key: ${ENCRYPT_KEY:&wQ1HaSMTpB@MwP9*S5lIhBfMZOiMkpHXM56WJ^0RrhJ&aIMnRA9qb4amtAb7j=k}
+
+logging:
+  level:
+    org.springframework.cloud.config.server: DEBUG
