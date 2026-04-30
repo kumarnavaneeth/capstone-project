@@ -1,4 +1,4 @@
-package com.flightapp.ticket_service.service;
+package com.flightapp.ticket_service.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
@@ -6,6 +6,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -21,12 +22,12 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import com.flightapp.ticket_service.controller.TicketController;
 import com.flightapp.ticket_service.entity.Booking;
 import com.flightapp.ticket_service.entity.Gender;
 import com.flightapp.ticket_service.entity.MealType;
 import com.flightapp.ticket_service.entity.Passenger;
 import com.flightapp.ticket_service.exceptions.TicketNotFoundException;
+import com.flightapp.ticket_service.service.TicketService;
 
 import tools.jackson.databind.ObjectMapper;
 
