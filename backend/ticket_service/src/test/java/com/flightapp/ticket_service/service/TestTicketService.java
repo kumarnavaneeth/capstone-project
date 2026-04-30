@@ -5,12 +5,17 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -18,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.web.client.RestTemplate;
 
 import com.flightapp.ticket_service.entity.Booking;
 import com.flightapp.ticket_service.entity.BookingStatus;
@@ -34,7 +40,8 @@ class TestTicketService {
 
 	@Mock
 	TicketRepository ticketRepository;
-
+	@Mock
+	RestTemplate restTemplate;
 	Booking booking;
 	Passenger firstPassenger;
 	Passenger secondPassenger;
@@ -65,6 +72,10 @@ class TestTicketService {
 		passengers.add(firstPassenger);
 		passengers.add(secondPassenger);
 		booking.setPassengers(passengers);
+		Map<String, Object> flight = new HashMap<>();
+		flight.put("available_seats", 10);
+		Map<String, Object>[] flights = new Map[] { flight };
+		when(restTemplate.getForObject(contains("?flight_id=100"), any(Class.class))).thenReturn(flights);
 		when(ticketRepository.save(any(Booking.class))).thenReturn(booking);
 		Booking result = ticketService.bookTicket(100L, booking);
 		assertNotNull(result);
@@ -82,6 +93,10 @@ class TestTicketService {
 		passengers.add(firstPassenger);
 		passengers.add(secondPassenger);
 		booking.setPassengers(passengers);
+		Map<String, Object> flight = new HashMap<>();
+		flight.put("available_seats", 10);
+		Map<String, Object>[] flights = new Map[] { flight };
+		when(restTemplate.getForObject(contains("?flight_id=100"), any(Class.class))).thenReturn(flights);
 		when(ticketRepository.save(any(Booking.class))).thenReturn(booking);
 		Booking result = ticketService.bookTicket(100L, booking);
 		assertNotNull(result);
@@ -94,11 +109,15 @@ class TestTicketService {
 	void testBookingWithSinglePassenger() {
 		passengers.add(firstPassenger);
 		booking.setPassengers(passengers);
+		Map<String, Object> flight = new HashMap<>();
+		flight.put("available_seats", 10);
+		Map<String, Object>[] flights = new Map[] { flight };
+		when(restTemplate.getForObject(contains("?flight_id=101"), any(Class.class))).thenReturn(flights);
 		when(ticketRepository.save(any(Booking.class))).thenReturn(booking);
-		Booking result = ticketService.bookTicket(110L, booking);
+		Booking result = ticketService.bookTicket(101L, booking);
 		assertNotNull(result);
 		assertEquals(10L, result.getBookingId());
-		assertEquals(110L, result.getFlightId());
+		assertEquals(101L, result.getFlightId());
 		assertEquals(BookingStatus.CONFIRMED, result.getStatus());
 		assertNotNull(result.getPnr());
 		assertEquals(booking, firstPassenger.getBooking());
@@ -175,4 +194,127 @@ class TestTicketService {
 		});
 	}
 
+	@Test
+	void testBookingWithAvailableSeatsReducedSuccessfully() {
+		passengers.add(firstPassenger);
+		passengers.add(secondPassenger);
+		booking.setPassengers(passengers);
+		Map<String, Object> flight = new HashMap<>();
+		flight.put("available_seats", 10);
+		Map<String, Object>[] flights = new Map[] { flight };
+		when(restTemplate.getForObject(contains("?flight_id=100"), any(Class.class))).thenReturn(flights);
+		when(ticketRepository.save(any(Booking.class))).thenReturn(booking);
+		Booking result = ticketService.bookTicket(100L, booking);
+		assertNotNull(result);
+		assertEquals(10L, result.getBookingId());
+		assertEquals(booking, firstPassenger.getBooking());
+		assertEquals(booking, secondPassenger.getBooking());
+		assertEquals(8, flight.get("available_seats"));
+		verify(restTemplate, times(1)).put(any(String.class), any());
+		verify(ticketRepository, times(1)).save(any(Booking.class));
+	}
+
+	@Test
+	void testBookingWithNotEnoughSeatsAvaibale() {
+		passengers.add(firstPassenger);
+		passengers.add(secondPassenger);
+		booking.setPassengers(passengers);
+		Map<String, Object> flight = new HashMap<>();
+		flight.put("available_seats", 1);
+		Map<String, Object>[] flights = new Map[] { flight };
+		when(restTemplate.getForObject(contains("?flight_id=100"), any(Class.class))).thenReturn(flights);
+		assertThrows(InvalidBookingException.class, () -> {
+			ticketService.bookTicket(100L, booking);
+		});
+		verify(ticketRepository, never()).save(any(Booking.class));
+		verify(restTemplate, never()).put(any(String.class), any());
+	}
+
+	@Test
+	void testCancelTicketThatAlreadyCancelled() {
+		booking.setPnr("FL123456");
+		booking.setStatus(BookingStatus.CANCELLED);
+		when(ticketRepository.findByPnr("FL123456")).thenReturn(Optional.of(booking));
+		assertThrows(InvalidBookingException.class, () -> {
+			ticketService.cancelTicketByPnr("FL123456");
+		});
+		verify(restTemplate, never()).getForObject(any(String.class), any());
+		verify(ticketRepository, never()).save(any(Booking.class));
+	}
+
+	@Test
+	void testCancelTicketSuccessfully() {
+		passengers.add(firstPassenger);
+		passengers.add(secondPassenger);
+		booking.setBookingId(10L);
+		booking.setPnr("FL123456");
+		booking.setFlightId(100L);
+		booking.setStatus(BookingStatus.CONFIRMED);
+		booking.setPassengers(passengers);
+		when(ticketRepository.findByPnr("FL123456")).thenReturn(Optional.of(booking));
+		Map<String, Object> flight = new HashMap<>();
+		flight.put("available_seats", 5);
+		flight.put("departure_time", LocalDateTime.now().plusDays(2).toString());
+		Map<String, Object>[] flights = new Map[] { flight };
+		when(restTemplate.getForObject(contains("?flight_id=100"), any(Class.class))).thenReturn(flights);
+		when(ticketRepository.save(any(Booking.class))).thenReturn(booking);
+		ticketService.cancelTicketByPnr("FL123456");
+		assertEquals(BookingStatus.CANCELLED, booking.getStatus());
+		verify(ticketRepository, times(1)).save(any(Booking.class));
+		verify(restTemplate, times(1)).put(any(String.class), any());
+	}
+
+	@Test
+	void testSeatUpdationWithcancelTicket() {
+		passengers.add(firstPassenger);
+		passengers.add(secondPassenger);
+		booking.setBookingId(10L);
+		booking.setPnr("FL123456");
+		booking.setFlightId(100L);
+		booking.setStatus(BookingStatus.CONFIRMED);
+		booking.setPassengers(passengers);
+		when(ticketRepository.findByPnr("FL123456")).thenReturn(Optional.of(booking));
+		Map<String, Object> flight = new HashMap<>();
+		flight.put("available_seats", 5);
+		flight.put("departure_time", LocalDateTime.now().plusDays(2).toString());
+		Map<String, Object>[] flights = new Map[] { flight };
+		when(restTemplate.getForObject(contains("?flight_id=100"), any(Class.class))).thenReturn(flights);
+		when(ticketRepository.save(any(Booking.class))).thenReturn(booking);
+		ticketService.cancelTicketByPnr("FL123456");
+		assertEquals(BookingStatus.CANCELLED, booking.getStatus());
+		assertEquals(7, flight.get("available_seats"));
+		verify(ticketRepository, times(1)).save(any(Booking.class));
+		verify(restTemplate, times(1)).put(any(String.class), any());
+	}
+
+	@Test
+	void testCancelTicketWithinTwentyFourHourOfDeparture() {
+		passengers.add(firstPassenger);
+		booking.setBookingId(10L);
+		booking.setPnr("FL123456");
+		booking.setFlightId(100L);
+		booking.setStatus(BookingStatus.CONFIRMED);
+		booking.setPassengers(passengers);
+		when(ticketRepository.findByPnr("FL123456")).thenReturn(Optional.of(booking));
+		Map<String, Object> flight = new HashMap<>();
+		flight.put("available_seats", 5);
+		flight.put("departure_time", LocalDateTime.now().plusHours(5).toString());
+		Map<String, Object>[] flights = new Map[] { flight };
+		when(restTemplate.getForObject(contains("?flight_id=100"), any(Class.class))).thenReturn(flights);
+		assertThrows(InvalidBookingException.class, () -> {
+			ticketService.cancelTicketByPnr("FL123456");
+		});
+		verify(ticketRepository, never()).save(any(Booking.class));
+		verify(restTemplate, never()).put(any(String.class), any());
+	}
+
+	@Test
+	void testCancelTicketWithInvalidPnr() {
+		when(ticketRepository.findByPnr("FL123412")).thenReturn(Optional.empty());
+		assertThrows(TicketNotFoundException.class, () -> {
+			ticketService.cancelTicketByPnr("FL123412");
+		});
+		verify(ticketRepository, never()).save(any(Booking.class));
+		verify(restTemplate, never()).getForObject(any(String.class), any());
+	}
 }

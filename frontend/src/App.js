@@ -1,5 +1,6 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+
 import AdminDashboard from "./pages/Admin/AdminDashboard";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
@@ -29,10 +30,12 @@ function Navbar() {
     </nav>
   );
 }
+
 function App() {
   return (
     <BrowserRouter>
       <Navbar />
+
       <Routes>
         <Route path="/" element={<SearchFlights/>}/>
         <Route path="/login" element={<Login />} />

@@ -1,16 +1,17 @@
 {
   "flights": [
     {
+      "id": "101",
       "flight_id": 101,
       "airline_name": "IndiGo",
       "flight_number": "6E101",
       "source": "Hyderabad",
       "destination": "Delhi",
-      "departure_time": "2026-05-20T18:00:00", 
+      "departure_time": "2026-05-20T18:00:00",
       "arrival_time": "2026-05-20T20:30:00",
       "duration": 150,
-      "available_seats": 150,
-      "ticket_price": 4500.0,
+      "available_seats": 142,
+      "ticket_price": 4500,
       "meal_option": "Veg/Non-Veg",
       "schedule_days": "Mon,Wed,Fri",
       "aircraft_type": "Airbus A320",
@@ -19,16 +20,17 @@
       "status": "ACTIVE"
     },
     {
+      "id": "102",
       "flight_id": 102,
       "airline_name": "Air India",
       "flight_number": "AI301",
       "source": "Chennai",
       "destination": "Mumbai",
-      "departure_time": "2026-04-29T08:00:00",  
+      "departure_time": "2026-04-29T08:00:00",
       "arrival_time": "2026-05-08T11:45:00",
       "duration": 135,
-      "available_seats": 120,
-      "ticket_price": 5200.0,
+      "available_seats": 106,
+      "ticket_price": 5200,
       "meal_option": "Veg/Non-Veg",
       "schedule_days": "Tue,Thu,Sat",
       "aircraft_type": "Boeing 737",
@@ -37,16 +39,17 @@
       "status": "ACTIVE"
     },
     {
+      "id": "103",
       "flight_id": 103,
       "airline_name": "SpiceJet",
       "flight_number": "SG503",
       "source": "Bangalore",
       "destination": "Kolkata",
-      "departure_time": "2026-05-25T14:00:00", 
+      "departure_time": "2026-05-25T14:00:00",
       "arrival_time": "2026-05-25T17:10:00",
       "duration": 190,
-      "available_seats": 90,
-      "ticket_price": 6100.0,
+      "available_seats": 87,
+      "ticket_price": 6100,
       "meal_option": "Veg/Non-Veg",
       "schedule_days": "Mon,Wed,Sun",
       "aircraft_type": "Airbus A321",
@@ -54,5 +57,6 @@
       "non_business_class_seats": 75,
       "status": "ACTIVE"
     }
-  ]
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
 }

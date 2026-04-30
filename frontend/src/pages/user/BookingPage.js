@@ -3,6 +3,7 @@ import { useState } from "react";
 
 function BookingPage() {
   const location = useLocation();
+  
   const { flight, passengers } = location.state || {};
 
   const [count, setCount] = useState(passengers || 1);
@@ -24,6 +25,7 @@ function BookingPage() {
 
   const price = Number(flight?.price.replace(/[₹,]/g, "")) || 0;
   const total = price * count;
+  
 
   return (
     <div style={{ padding: "30px", maxWidth: "900px", margin: "auto" }}>
