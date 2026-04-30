@@ -63,12 +63,14 @@ public class FlightControllerTest {
     public void testSearchFlights_Success() throws Exception {
         SearchRequest request = new SearchRequest("DELHI", "MUMBAI", LocalDate.of(2026, 5, 1), 1);
         when(flightService.searchFlights(request)).thenReturn(List.of(new FlightResponse()));
+
         mockMvc.perform(MockMvcRequestBuilders.post("/api/v1.0/flight/search")
                 .contentType("application/json")
                 .content("{\"source\":\"DELHI\", \"destination\":\"MUMBAI\", \"travelDate\":\"2026-05-01\", \"numberOfTravellers\": 1}"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.length()").value(1));
     }
+
     @Test
     public void testAddFlight_Failure() throws Exception {
         doThrow(new RuntimeException("Failed to add flight"))
@@ -222,5 +224,4 @@ public class FlightControllerTest {
     	
  
 }
-
 
