@@ -18,8 +18,21 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class SearchRequest {
 
+    @NotBlank(message = "{source.required}")
+    @Pattern(regexp = ValidationConstants.CITY_PATTERN, message = "{city.invalid}")
     private String source;
+
+    @NotBlank(message = "{destination.required}")
+    @Pattern(regexp = ValidationConstants.CITY_PATTERN, message = "{city.invalid}")
     private String destination;
-    private LocalDate travelDate; 
+
+    @NotNull(message = "{travel.date.required}")
+    @FutureOrPresent(message = "${travel.date.invalid}")
+    private LocalDate travelDate;
+
+    @NotNull(message = "{travellers.required}")
+    @Min(value = 1, message = "{travellers.min}")
     private Integer numberOfTravellers;
+    
+    
 }

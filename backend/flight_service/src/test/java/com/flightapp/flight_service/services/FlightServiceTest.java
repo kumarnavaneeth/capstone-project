@@ -77,15 +77,17 @@ public class FlightServiceTest {
         assertEquals(AirlineStatus.ACTIVE, result.getStatus());
         verify(airlineRepository).save(result);
     }
-
     @Test
     void testSearchFlightsNoFlightsFound() {
         SearchRequest request = new SearchRequest("DELHI","MUMBAI", LocalDate.of(2026, 5, 1),1);
         when(flightRepository.searchFlights("DELHI","MUMBAI", request.getTravelDate(), FlightStatus.AVAILABLE))
                 .thenReturn(List.of());
+
         List<FlightResponse> results = flightService.searchFlights(request);
         assertTrue(results.isEmpty());
     }
+
+  
     @Test
     void testSearchFlightsBlockedAirline() {
         SearchRequest request = new SearchRequest();
