@@ -1,14 +1,31 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import authService from "../../services/authService";
 const Signup = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const[firstname,setfirstName]=useState("");
+  const[lastname,setlastName]=useState("");
+  const[phonenumber,setphoneNumber]=useState("");
   const[showSuccess,setShowSuccess]=useState(false);
-  const handleSubmit = (e) => {
+
+  const handleSubmit =  async (e) => {
     e.preventDefault();
-    setShowSuccess(true);
+    try {
+  await authService.userRegister({
+    email,
+    password,
+    firstname,
+    lastname,
+    phonenumber
+
+  });
+
+  setShowSuccess(true);
+} catch (error) {
+  alert("Signup failed. Please try again.");
+}
   };
   
 const closeModal = () => {
@@ -21,6 +38,36 @@ const closeModal = () => {
       <h2>Signup</h2>
 
       <form onSubmit={handleSubmit}>
+        
+      <input
+          type="text"
+          placeholder="First Name"
+          value={firstname}
+          onChange={(e) => setfirstName(e.target.value)}
+          required
+        />
+        <br /><br />
+
+        <input
+          type="text"
+          placeholder="Last Name"
+          value={lastname}
+          onChange={(e) => setlastName(e.target.value)}
+          required
+        />
+        <br /><br />
+        
+        <input
+            type="tel"
+            placeholder="Phone Number"
+            value={phonenumber}
+            onChange={(e) => setphoneNumber(e.target.value)}
+            required
+            pattern="[0-9]{10}"
+            title="Enter a 10-digit phone number"
+          />
+          <br /><br />
+
         <input
           type="email"
           placeholder="Email"

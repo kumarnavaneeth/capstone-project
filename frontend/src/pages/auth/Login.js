@@ -1,22 +1,50 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import authService from "../../services/authService";
 
 const Login = () => {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();  
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
- localStorage.setItem("token", "dummy-token");
-    if (email === "admin@test.com") {
-      localStorage.setItem("role", "ADMIN");
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
+    let response;
+
+    // SIMPLE RULE: admin emails login as admin
+    if (email.endsWith("@admin.com")) {
+      response = await authService.adminLogin({
+        email,
+        password
+      });
+    } else {
+      response = await authService.userLogin({
+        email,
+        password
+      });
+    }
+
+    // Save JWT token
+    localStorage.setItem("token", response.data.token);
+
+    // Save role (if backend sends it)
+    if (response.data.role) {
+      localStorage.setItem("role", response.data.role);
+    }
+
+    // Navigate based on role
+    if (response.data.role === "ADMIN") {
       navigate("/admin/dashboard");
     } else {
-      localStorage.setItem("role", "USER");
       navigate("/");
     }
-  };
+
+  } catch (error) {
+    alert("Invalid email or password");
+  }
+};
   
   return (
     <div style={{ width: "300px", margin: "80px auto" }}>

@@ -5,7 +5,7 @@ function AdminDashboard() {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
-    navigate("/admin/login");
+    navigate("/");
   };
   return (
     <div>
