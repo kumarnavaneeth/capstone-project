@@ -5,7 +5,7 @@ const{User,Role,UserRole}=require("./models/index");
 require("dotenv").config();
 const PORT = process.env.PORT || 5000;
 sequelize
-  .sync({ alter: true })
+  .sync()
   .then(async () => {
     console.log("Database connected");
     console.log("Tables synced");

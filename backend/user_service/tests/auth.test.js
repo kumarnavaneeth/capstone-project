@@ -91,3 +91,72 @@ describe("Register",()=>{
         expect(response.body.message).toBe("Phone number must be 10-15 digits");
     });
 });
+//Login tests
+describe("Login",()=>{
+    test("Login successfully with correct credentials",async()=>{
+        User.findOne.mockResolvedValue({
+            user_id:1,
+            email:"test@example.com",
+            password:await require("bcryptjs").hash("123456",10),
+            roles:[{role_name:"USER"}],
+            toJSON:()=>({user_id:1,email:"test@example.com"}),
+        });
+        const response=await request(app)
+        .post("/api/v1.0/flight/user/login")
+        .send({
+            email:"test@example.com",
+            password:"123456"
+        });
+        expect(response.statusCode).toBe(200);
+        expect(response.body.token).toBeDefined();
+        expect(response.body.roles).toContain("USER");
+    });
+    test("Failed to login with incorrect password",async()=>{
+        const response=await request(app)
+        .post("/api/v1.0/flight/user/login")
+        .send({
+            email:"test@example.com",
+            password:"123456"
+        });
+        expect(response.statusCode).toBe(200);
+        expect(response.body.token).toBeDefined();
+        expect(response.body.roles).toContain("USER");
+    });
+    test("Failed to login with missing fields",async()=>{
+        const response=await request(app)
+        .post("/api/v1.0/flight/user/login")
+        .send({
+            email:"test@example.com"
+        });
+        expect(response.statusCode).toBe(401);
+        expect(response.body.message).toBe("Email and password are required");
+    });
+    test("Failed to login with wrong password",async()=>{
+        User.findOne.mockResolvedValue({
+            user_id:1,
+            email:"test@example.com",
+            password:await require("bcryptjs").hash("123456",10),
+            roles:[{role_name:"USER"}],
+            toJSON:()=>({user_id:1,email:"test@example.com"}),
+        });
+        const response=await request(app)
+        .post("/api/v1.0/flight/user/login")
+        .send({
+            email:"test@example.com",
+            password:"wrongpassword"
+        });
+        expect(response.statusCode).toBe(401);
+        expect(response.body.message).toBe("Invalid credentials");
+    });
+    test("Failed to login with non-existent email",async()=>{
+        User.findOne.mockResolvedValue(null);
+        const response=await request(app)
+        .post("/api/v1.0/flight/user/login")
+        .send({
+            email:"nonexistent@example.com",
+            password:"123456"
+        });
+        expect(response.statusCode).toBe(401);
+        expect(response.body.message).toBe("User not found");
+    });
+});
