@@ -36,8 +36,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: backend/user_service/package-lock.json
       - run: npm install
       - run: npm test
 
@@ -52,6 +50,4 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: backend/api-gateway/package-lock.json
       - run: npm install
