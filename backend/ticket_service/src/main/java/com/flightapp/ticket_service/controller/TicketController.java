@@ -1,5 +1,7 @@
 package com.flightapp.ticket_service.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,5 +39,10 @@ public class TicketController {
 	public ResponseEntity<String> cancelTicketByPnr(@PathVariable String pnr) {
 		ticketService.cancelTicketByPnr(pnr);
 		return ResponseEntity.ok("Ticket cancelled Successfully");
+	}
+	@GetMapping("/booking/history/{userId}")
+	public ResponseEntity<List<Booking>> getBookingHistoryByUserId(@PathVariable Long userId){
+		List<Booking> bookings=ticketService.getBookingHistoryByUserId(userId);
+		return ResponseEntity.ok(bookings);
 	}
 }
