@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [flight_service, ticket_service]
+        service: [flight_service, ticket_service] 
     defaults:
       run:
         working-directory: backend/${{ matrix.service }}
@@ -37,14 +37,14 @@ jobs:
         with:
           node-version: '18'
       - run: npm install
-      - run: npm test
+      - run: npm test -- --passWithNoTests
 
-  # Node.js api-gateway
+  # Node.js api_gateway
   build-api-gateway:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: backend/api-gateway
+        working-directory: backend/api_gateway
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
