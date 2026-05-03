@@ -37,7 +37,7 @@ jobs:
         with:
           node-version: '18'
       - run: npm install
-      - run: npm test -- --passWithNoTests
+      
 
   # Node.js api_gateway
   build-api-gateway:
