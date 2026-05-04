@@ -10,7 +10,11 @@ const userProxy = createProxyMiddleware({
     on: {
         proxyReq: (proxyReq, request, response) => {
             console.log(`Proxying: ${request.method} ${request.url} → ${process.env.USER_SERVICE_URL}`);
-                    console.log(`Body:`, request.body);
+            if (request.rawBody){
+                proxyReq.setHeader("Content-Type", "application/json");
+                proxyReq.setHeader("Content-Length", Buffer.byteLength(request.rawBody));
+                proxyReq.write(request.rawBody);
+            }
         },
         error: (error, request, response) => {
             console.error("Proxy error:", error.message);
@@ -26,6 +30,11 @@ const adminProxy = createProxyMiddleware({
     on: {
         proxyReq: (proxyReq, request, response) => {
             console.log(`Proxying: ${request.method} ${request.url} → ${process.env.USER_SERVICE_URL}`);
+            if (request.rawBody) { 
+                proxyReq.setHeader("Content-Type", "application/json");
+                proxyReq.setHeader("Content-Length", Buffer.byteLength(request.rawBody));
+                proxyReq.write(request.rawBody);
+            }
         },
         error: (error, request, response) => {
             console.error("Proxy error:", error.message);
