@@ -36,6 +36,7 @@ public class Booking {
 	private LocalDateTime bookingDate;
 	@Enumerated(EnumType.STRING)
 	private BookingStatus status;
+	private Boolean isBusinessClass;
 	@OneToMany(mappedBy = "booking", cascade = CascadeType.ALL)
 	@JsonManagedReference
 	@NotNull

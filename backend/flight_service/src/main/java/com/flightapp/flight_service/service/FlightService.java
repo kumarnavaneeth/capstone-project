@@ -99,4 +99,20 @@ public class FlightService {
         }
         return airlineRepository.save(airline);
     }
+    public void updateSeats(Long flightId,int seatChange,boolean isBusinessClass) {
+    	Flight flight=flightRepository.findById(flightId)
+    			.orElseThrow(()->new RuntimeException("flight not found for seat update"));
+    	if(isBusinessClass) {
+    		flight.setBusinessClassSeats(flight.getBusinessClassSeats()+seatChange);
+    	}
+    	else {
+    		flight.setNonBusinessClassSeats(flight.getNonBusinessClassSeats()+seatChange);
+    	}
+    	flight.setAvailableSeats(flight.getAvailableSeats()+seatChange);
+    	flightRepository.save(flight);
+    }
+    
+	public Flight getFlightById(Long flightId) {
+		return flightRepository.findById(flightId).orElseThrow(() -> new RuntimeException("Flight not found"));
+	}
 }

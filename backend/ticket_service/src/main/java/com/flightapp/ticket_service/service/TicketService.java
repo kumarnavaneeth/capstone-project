@@ -1,14 +1,17 @@
 package com.flightapp.ticket_service.service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import com.flightapp.ticket_service.dto.BookingEvent;
 import com.flightapp.ticket_service.entity.Booking;
 import com.flightapp.ticket_service.entity.BookingStatus;
 import com.flightapp.ticket_service.entity.Passenger;
@@ -22,8 +25,11 @@ public class TicketService {
 	TicketRepository ticketRepository;
 	@Autowired
 	RestTemplate restTemplate;
+	@Autowired
+	private KafkaTemplate<String, Object> kafkaTemplate;
 	@Value("${flight.service.url}")
 	private String flightServiceUrl;
+	private static final String TOPIC = "booking-updates";
 
 	public Booking bookTicket(Long flightId, Booking booking) {
 		if (booking == null) {
@@ -32,19 +38,18 @@ public class TicketService {
 		if (booking.getPassengers() == null || booking.getPassengers().isEmpty()) {
 			throw new InvalidBookingException("at least one passenger is required");
 		}
-		Map<String, Object>[] flights = restTemplate.getForObject(flightServiceUrl + "?flight_id=" + flightId,
-				Map[].class);
-		if (flights == null || flights.length == 0) {
+		Map<String, Object> flight = restTemplate.getForObject(flightServiceUrl + "/" + flightId, Map.class);
+		if (flight == null || flight.isEmpty()) {
 			throw new InvalidBookingException("Flight not found");
 		}
-		Map<String, Object> flight = flights[0];
-		Integer availableSeats = (Integer) flight.get("available_seats");
+		boolean isBusiness = booking.getIsBusinessClass() != null && booking.getIsBusinessClass();
+		String seatKey = isBusiness ? "businessClassSeats" : "nonBusinessClassSeats";
+		Integer availableSeats = (Integer) flight.get(seatKey);
 		int bookedSeats = booking.getPassengers().size();
 		if (availableSeats < bookedSeats) {
 			throw new InvalidBookingException("Not enough seats available");
 		}
-		flight.put("available_seats", availableSeats - bookedSeats);
-		restTemplate.put(flightServiceUrl + "/" + flightId, flight);
+		kafkaTemplate.send(TOPIC, new BookingEvent(flightId, -bookedSeats, isBusiness));
 		booking.setFlightId(flightId);
 		booking.setUserId(101L);
 		booking.setStatus(BookingStatus.CONFIRMED);
@@ -73,20 +78,25 @@ public class TicketService {
 			throw new InvalidBookingException("Ticket already cancelled");
 		}
 		Long flightId = booking.getFlightId();
-		Map<String, Object>[] flights = restTemplate.getForObject(flightServiceUrl + "?flight_id=" + flightId,
-				Map[].class);
-		Map<String, Object> flight = flights[0];
-		String flightDepartureTime = (String) flight.get("departure_time");
+		Map<String, Object> flight = restTemplate.getForObject(flightServiceUrl + "/" + flightId, Map.class);
+		String flightDepartureTime = (String) flight.get("departureTime");
 		LocalDateTime departureTime = LocalDateTime.parse(flightDepartureTime);
 		if (departureTime.isAfter(LocalDateTime.now().plusHours(24))) {
-			Integer availableSeats = (Integer) flight.get("available_seats");
+			boolean wasBusiness = booking.getIsBusinessClass() != null && booking.getIsBusinessClass();
 			int cancelledSeats = booking.getPassengers().size();
-			flight.put("available_seats", availableSeats + cancelledSeats);
-			restTemplate.put(flightServiceUrl + "/" + flightId, flight);
+			kafkaTemplate.send(TOPIC, new BookingEvent(booking.getFlightId(), cancelledSeats, wasBusiness));
 			booking.setStatus(BookingStatus.CANCELLED);
 			ticketRepository.save(booking);
 		} else {
 			throw new InvalidBookingException("cannot cancel ticket within 24hrs of departure");
 		}
+	}
+
+	public List<Booking> getBookingHistoryByUserId(Long userId) {
+		List<Booking> bookings = ticketRepository.findByUserId(userId);
+		if (bookings.isEmpty()) {
+			throw new TicketNotFoundException("No booking found for this user id");
+		}
+		return bookings;
 	}
 }

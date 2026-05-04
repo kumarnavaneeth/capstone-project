@@ -1,5 +1,6 @@
 package com.flightapp.ticket_service.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,4 +12,5 @@ import com.flightapp.ticket_service.entity.Booking;
 public interface TicketRepository extends JpaRepository<Booking, Long> {
 	Optional<Booking> findByPnr(String pnr);
 
+	List<Booking> findByUserId(Long userId);
 }
