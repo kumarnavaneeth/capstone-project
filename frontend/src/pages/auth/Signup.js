@@ -5,6 +5,7 @@ const Signup = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const[firstname,setfirstName]=useState("");
   const[lastname,setlastName]=useState("");
   const[phonenumber,setphoneNumber]=useState("");
@@ -12,13 +13,19 @@ const Signup = () => {
 
   const handleSubmit =  async (e) => {
     e.preventDefault();
+      if (password !== confirmPassword) {
+        alert("Passwords do not match!");
+        return;
+      }
+
     try {
   await authService.userRegister({
     email,
     password,
-    firstname,
-    lastname,
-    phonenumber
+    confirmPassword,
+    firstName:firstname,
+    lastName:lastname,
+    phoneNumber:phonenumber,
 
   });
 
@@ -86,6 +93,15 @@ const closeModal = () => {
         />
         <br/>
         <br/>
+        <input
+            type="password"
+            placeholder="Confirm Password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+          />
+          <br />
+          <br />
 
         <button type="submit">Signup</button>
       </form>

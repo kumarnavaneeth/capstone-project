@@ -2,10 +2,10 @@ import api from "./api";
 
 const userService = {
   getUserProfile: () =>
-    api.get("/userProfile"),
+    api.get("/user/profile"),
 
   getAdminProfile: () =>
-    api.get("/adminProfile")
+    api.get("user/admin/profile")
 };
 
 export default userService;

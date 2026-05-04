@@ -7,41 +7,30 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = async (e) => {
+ const handleSubmit = async (e) => {
   e.preventDefault();
 
   try {
-    let response;
+    const response = await authService.userLogin({ email, password });
 
-    // SIMPLE RULE: admin emails login as admin
-    if (email.endsWith("@admin.com")) {
-      response = await authService.adminLogin({
-        email,
-        password
-      });
-    } else {
-      response = await authService.userLogin({
-        email,
-        password
-      });
-    }
+    console.log("Response data:", response.data); // check console after login
 
-    // Save JWT token
+    const roles = response.data.roles;            // ["ADMIN"]
+    const role = Array.isArray(roles) ? roles[0] : roles; // "ADMIN"
+
     localStorage.setItem("token", response.data.token);
+    localStorage.setItem("role", role);
 
-    // Save role (if backend sends it)
-    if (response.data.role) {
-      localStorage.setItem("role", response.data.role);
-    }
+    console.log("Role:", role); // should print ADMIN
 
-    // Navigate based on role
-    if (response.data.role === "ADMIN") {
+    if (role === "ADMIN") {
       navigate("/admin/dashboard");
     } else {
       navigate("/");
     }
 
   } catch (error) {
+    console.error("Login error:", error);
     alert("Invalid email or password");
   }
 };

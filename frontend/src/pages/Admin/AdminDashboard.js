@@ -21,13 +21,13 @@ function AdminDashboard() {
       >
         <div>
           <Link
-            to="/admin/schedules"
+            to="/admin/manage-airlines"
             style={{ color: "white", marginRight: "20px" }}
           >
-            Manage Schedules
+            Manage Airlines
           </Link>
           <Link to="/admin/airlines" style={{ color: "white", marginRight: "20px"  }}>
-            Manage Airlines
+            Add Airlines
           </Link>
 
            <Link to="/admin/add-flights" style={{ color: "white", marginRight: "20px" }}>

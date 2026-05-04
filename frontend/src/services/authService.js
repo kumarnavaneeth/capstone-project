@@ -8,7 +8,7 @@ const authService = {
     api.post("/user/login", data),
 
   adminLogin: (data) =>
-    api.post("/admin/login", data),
+    api.post("user/admin/login", data),
 
   logout: () => {
     localStorage.removeItem("token");
