@@ -47,6 +47,7 @@ public class FlightService {
 
         return activeFlights.stream().map(flight -> {
             FlightResponse response = new FlightResponse();
+            response.setFlightId(flight.getFlightId());
             response.setSource(flight.getSource());
             response.setDestination(flight.getDestination());
             response.setAirline(flight.getAirlineName());

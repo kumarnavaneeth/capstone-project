@@ -19,6 +19,8 @@ import lombok.Data;
         "status"
 })
 public class FlightResponse {
+	
+	private Long flightId;
 
     private String source;
     private String destination;
