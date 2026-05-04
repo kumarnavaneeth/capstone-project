@@ -8,8 +8,9 @@ const userProxy = createProxyMiddleware({
     changeOrigin: true,
     parseReqBody: false,
     on: {
-        proxyRequest: (proxyRequest, request, response) => {
+        proxyReq: (proxyReq, request, response) => {
             console.log(`Proxying: ${request.method} ${request.url} → ${process.env.USER_SERVICE_URL}`);
+                    console.log(`Body:`, request.body);
         },
         error: (error, request, response) => {
             console.error("Proxy error:", error.message);
@@ -23,7 +24,7 @@ const adminProxy = createProxyMiddleware({
     changeOrigin: true,
     parseReqBody: false,
     on: {
-        proxyRequest: (proxyRequest, request, response) => {
+        proxyReq: (proxyReq, request, response) => {
             console.log(`Proxying: ${request.method} ${request.url} → ${process.env.USER_SERVICE_URL}`);
         },
         error: (error, request, response) => {

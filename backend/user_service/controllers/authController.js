@@ -1,5 +1,6 @@
 const authService = require("../services/authService");
 exports.register = async (request, response) => {
+  console.log("Request body:", request.body);
   try {
     const result = await authService.register(request.body);
     response.status(201).send();
