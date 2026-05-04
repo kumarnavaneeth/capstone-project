@@ -1,9 +1,9 @@
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 
 function BookingPage() {
   const location = useLocation();
-  
+  const navigate = useNavigate();
   const { flight, passengers } = location.state || {};
 
   const [count, setCount] = useState(passengers || 1);
@@ -13,7 +13,8 @@ function BookingPage() {
       firstName: "",
       lastName: "",
       gender: "",
-      meal: ""
+      meal: "",
+      businessClass: "false"
     }))
   );
 
@@ -25,7 +26,66 @@ function BookingPage() {
 
   const price = Number(flight?.price.replace(/[₹,]/g, "")) || 0;
   const total = price * count;
-  
+
+  const generatePNR = () => {
+    return "PNR" + Math.floor(100000 + Math.random() * 900000);
+  };
+
+  const generateBookingId = () => {
+    return "BK" + Math.floor(100000 + Math.random() * 900000);
+  };
+
+  const generateFlightId = () => {
+    return "FL" + Math.floor(1000 + Math.random() * 9000);
+  };
+
+  const generatePassengerId = () => {
+    return "PS" + Math.floor(100000 + Math.random() * 900000);
+  };
+
+  const handleConfirmBooking = () => {
+    for (let passenger of details) {
+      if (
+        !passenger.firstName ||
+        !passenger.lastName ||
+        !passenger.gender ||
+        !passenger.meal
+      ) {
+        alert("Please fill all passenger details");
+        return;
+      }
+    }
+
+    const bookingId = generateBookingId();
+    const pnr = generatePNR();
+    const flightId = generateFlightId();
+
+    const passengersWithIds = details.map((p) => ({
+      passenger_id: generatePassengerId(),
+      ...p
+    }));
+
+    const bookingData = {
+      booking_id: bookingId,
+      pnr,
+      flight_id: flightId,
+      flight,
+      passengers: passengersWithIds,
+      total_amount: total,
+      booking_date: new Date().toLocaleString()
+    };
+
+    const existingBookings =
+      JSON.parse(localStorage.getItem("bookings")) || [];
+
+    existingBookings.push(bookingData);
+
+    localStorage.setItem("bookings", JSON.stringify(existingBookings));
+
+    navigate("/ticket", {
+      state: bookingData
+    });
+  };
 
   return (
     <div style={{ padding: "30px", maxWidth: "900px", margin: "auto" }}>
@@ -42,7 +102,14 @@ function BookingPage() {
       </div>
 
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} style={{ border: "1px solid #ccc", padding: "15px", marginBottom: "15px" }}>
+        <div
+          key={i}
+          style={{
+            border: "1px solid #ccc",
+            padding: "15px",
+            marginBottom: "15px"
+          }}
+        >
           <h4>Passenger {i + 1}</h4>
 
           <input
@@ -69,6 +136,11 @@ function BookingPage() {
             <option>Veg</option>
             <option>Non-Veg</option>
           </select>
+
+          <select onChange={(e) => handleChange(i, "businessClass", e.target.value)}>
+            <option value="false">Non Business Class</option>
+            <option value="true">Business Class</option>
+          </select>
         </div>
       ))}
 
@@ -78,6 +150,7 @@ function BookingPage() {
       </div>
 
       <button
+        onClick={handleConfirmBooking}
         style={{
           marginTop: "20px",
           padding: "10px 20px",

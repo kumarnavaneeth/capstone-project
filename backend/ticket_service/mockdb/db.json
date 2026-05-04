@@ -1,7 +1,6 @@
 {
   "flights": [
     {
-      "id": "101",
       "flight_id": 101,
       "airline_name": "IndiGo",
       "flight_number": "6E101",
@@ -15,31 +14,29 @@
       "meal_option": "Veg/Non-Veg",
       "schedule_days": "Mon,Wed,Fri",
       "aircraft_type": "Airbus A320",
-      "business_class_seats": 20,
-      "non_business_class_seats": 130,
+      "businessClassSeats": 20,
+      "nonBusinessClassSeats": 130,
       "status": "ACTIVE"
     },
     {
-      "id": "102",
       "flight_id": 102,
       "airline_name": "Air India",
       "flight_number": "AI301",
       "source": "Chennai",
       "destination": "Mumbai",
-      "departure_time": "2026-04-29T08:00:00",
-      "arrival_time": "2026-05-08T11:45:00",
+      "departure_time": "2026-05-22T08:00:00",
+      "arrival_time": "2026-05-22T11:45:00",
       "duration": 135,
-      "available_seats": 106,
+      "available_seats": 102,
       "ticket_price": 5200,
       "meal_option": "Veg/Non-Veg",
       "schedule_days": "Tue,Thu,Sat",
       "aircraft_type": "Boeing 737",
-      "business_class_seats": 30,
-      "non_business_class_seats": 150,
+      "businessClassSeats": 30,
+      "nonBusinessClassSeats": 150,
       "status": "ACTIVE"
     },
     {
-      "id": "103",
       "flight_id": 103,
       "airline_name": "SpiceJet",
       "flight_number": "SG503",
@@ -53,10 +50,9 @@
       "meal_option": "Veg/Non-Veg",
       "schedule_days": "Mon,Wed,Sun",
       "aircraft_type": "Airbus A321",
-      "business_class_seats": 15,
-      "non_business_class_seats": 75,
+      "businessClassSeats": 15,
+      "nonBusinessClassSeats": 75,
       "status": "ACTIVE"
     }
-  ],
-  "$schema": "./node_modules/json-server/schema.json"
+  ]
 }

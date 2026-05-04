@@ -1,10 +1,13 @@
-const app = require("./app");
-const sequelize = require("./config/db");
-const createAdminRoles = require("./utils/dbInitializer");
-require("dotenv").config();
+const loadConfig = require("./configClient");
+const start = async () => {
+    require("dotenv").config();
+    await loadConfig();
+    const app = require("./app");
+    const sequelize = require("./config/db");
+    const createAdminRoles = require("./utils/dbInitializer");
 const PORT = process.env.PORT || 5000;
 sequelize
-  .sync()
+  .sync({alter:true})
   .then(async () => {
     console.log("Database connected");
     await createAdminRoles();
@@ -15,3 +18,5 @@ sequelize
   .catch(error => {
     console.error("Error connecting to database:", error)
   });
+};
+start();
