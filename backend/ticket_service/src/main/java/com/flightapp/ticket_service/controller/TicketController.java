@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,7 +17,7 @@ import com.flightapp.ticket_service.entity.Booking;
 import com.flightapp.ticket_service.service.TicketService;
 
 import jakarta.validation.Valid;
-
+@CrossOrigin(origins="*")
 @RestController
 @RequestMapping("/api/v1.0/flight")
 public class TicketController {
