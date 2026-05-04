@@ -1,7 +1,7 @@
 const express=require("express");
-const app=express();
 require("dotenv").config();
 
+const app=express();
 const userRoutes=require("./routes/userRoutes");
 const flightRoutes=require("./routes/flightRoutes");
 const bookingRoutes=require("./routes/bookingRoutes");
