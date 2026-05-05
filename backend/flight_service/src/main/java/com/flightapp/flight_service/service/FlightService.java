@@ -59,6 +59,7 @@ public class FlightService {
             response.setBusinessClassSeats(flight.getBusinessClassSeats());
             response.setAircraftType(flight.getAircraftType());
             response.setStatus(flight.getStatus());
+            response.setAvailableSeats(flight.getAvailableSeats());
             return response;
         }).collect(Collectors.toList());
     }
@@ -67,7 +68,8 @@ public class FlightService {
         if (flight.getStatus() == null) {
             flight.setStatus(FlightStatus.AVAILABLE);
         }
-        return flightRepository.save(flight);
+        int availableSeats = flight.getBusinessClassSeats() + flight.getNonBusinessClassSeats();
+        flight.setAvailableSeats(availableSeats);        return flightRepository.save(flight);
     }
 
     public void updateFlightStatus(Long flightId, FlightStatus status) {
