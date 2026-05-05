@@ -1,5 +1,6 @@
 package com.flightapp.flight_service.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.flightapp.flight_service.enums.FlightStatus;
 import com.flightapp.flight_service.exceptions.ValidationConstants;
 
@@ -11,6 +12,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
@@ -54,6 +56,7 @@ public class Flight {
     private LocalDateTime departureTime;
     private LocalDateTime arrivalTime;
     private int duration; // In Minutes
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private int availableSeats;
     private float ticketPrice;
     private String mealOption;
@@ -65,8 +68,10 @@ public class Flight {
         message = "{aircraft.type.invalid}"
     )
     private String aircraftType;
-
+    
+    @Min(value = 1, message = "Value must be atleast 1")
     private int businessClassSeats;
+    @Min(value = 1, message = "Value must be atleast 1")
     private int nonBusinessClassSeats;
 
     @Enumerated(EnumType.STRING)

@@ -31,6 +31,7 @@ public class FlightResponse {
     private String arrivalTime;
     private Integer nonBusinessClassSeats;
     private Integer businessClassSeats;
+    private Integer availableSeats;
     private String aircraftType;
     private FlightStatus status;
 }
