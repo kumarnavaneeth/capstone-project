@@ -51,7 +51,6 @@ public class TicketService {
 		}
 		kafkaTemplate.send(TOPIC, new BookingEvent(flightId, -bookedSeats, isBusiness));
 		booking.setFlightId(flightId);
-		booking.setUserId(101L);
 		booking.setStatus(BookingStatus.CONFIRMED);
 		booking.setBookingDate(LocalDateTime.now());
 		booking.setPnr(generatePnr());
