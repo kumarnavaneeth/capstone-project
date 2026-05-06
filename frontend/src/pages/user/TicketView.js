@@ -1,26 +1,87 @@
-import { useLocation } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 function TicketView() {
-  const location = useLocation();
-  const booking = location.state;
+  const { pnr } = useParams();
+  const [booking, setBooking] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
-  if (!booking) return <h2>No Ticket Found</h2>;
+  useEffect(() => {
+    fetchBooking();
+  }, []);
+
+  const fetchBooking = async () => {
+    try {
+      const res = await axios.get(
+        `http://localhost:8080/api/v1.0/booking/ticket/${pnr}`
+      );
+      setBooking(res.data);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to load ticket");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDownload = () => {
+    const ticketData = `
+Booking ID: ${booking.bookingId}
+PNR: ${booking.pnr}
+Flight ID: ${booking.flightId}
+Status: ${booking.status}
+    `;
+    const blob = new Blob([ticketData], { type: "text/plain" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `Ticket_${booking.pnr}.txt`;
+    link.click();
+  };
+
+const handleCancel = async () => {
+    if (!window.confirm("Are you sure you want to cancel this booking?")) return;
+    try {
+      await axios({
+        method: "patch",
+        url: `http://localhost:8080/api/v1.0/flight/booking/cancel/${booking.pnr}`,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Request-Method": "PATCH"
+        }
+      });
+      const savedBookings = JSON.parse(localStorage.getItem("bookings")) || [];
+      const updated = savedBookings.map((b) =>
+        (b.booking_id || b.bookingId) === booking.bookingId
+          ? { ...b, status: "CANCELLED" }
+          : b
+      );
+      localStorage.setItem("bookings", JSON.stringify(updated));
+      alert("Booking cancelled!");
+      navigate("/bookings");
+    } catch (err) {
+      console.error("Cancel error:", err.response?.status, err.response?.data);
+      alert(`Failed: ${err.response?.data?.message || err.message}`);
+    }
+  };
+
+  if (loading) return <h2 style={{ textAlign: "center" }}>Loading...</h2>;
+  if (!booking) return <h2 style={{ textAlign: "center" }}>No Ticket Found</h2>;
 
   return (
     <div style={{ padding: "30px", textAlign: "center" }}>
-      <h1 style={{ color: "#003580" }}>
-        Congratulations! Your Booking is Confirmed
-      </h1>
-
+      <h1 style={{ color: "#003580" }}>Booking Confirmed</h1>
       <p>Your journey begins here ✈</p>
 
       <div style={{ marginBottom: "30px" }}>
-        <strong>Booking ID:</strong> {booking.booking_id}<br />
-        <strong>PNR:</strong> {booking.pnr}<br />
-        <strong>Flight ID:</strong> {booking.flight_id}
+        <strong>Booking ID:</strong> {booking.bookingId} <br />
+        <strong>PNR:</strong> {booking.pnr} <br />
+        <strong>Flight ID:</strong> {booking.flightId} <br />
+        <strong>Status:</strong> {booking.status}
       </div>
 
-      {booking.passengers.map((p, index) => (
+      {booking.passengers?.map((p, index) => (
         <div
           key={index}
           style={{
@@ -43,16 +104,13 @@ function TicketView() {
               fontWeight: "bold"
             }}
           >
-            {booking.flight.airline}
+            FLIGHT
           </div>
 
           <div
             style={{
               flex: 1,
-              backgroundColor:
-                p.businessClass === "true"
-                  ? "#FFFBEA"
-                  : "white",
+              backgroundColor: booking.isBusinessClass ? "#FFFBEA" : "white",
               padding: "20px"
             }}
           >
@@ -60,46 +118,13 @@ function TicketView() {
               style={{
                 display: "flex",
                 justifyContent: "space-between",
-                alignItems: "center",
-                fontSize: "28px",
+                fontSize: "24px",
                 fontWeight: "bold"
               }}
             >
-              <span>{booking.flight.from}</span>
-
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center"
-                }}
-              >
-                <div style={{ fontSize: "18px", marginBottom: "6px" }}>✈</div>
-
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "stretch",
-                    height: "45px",
-                    backgroundColor: "white",
-                    padding: "4px"
-                  }}
-                >
-                  {[2,4,1,3,2,5,1,4,2,3,1,5,2,4,1,3].map((w, i) => (
-                    <div
-                      key={i}
-                      style={{
-                        width: `${w}px`,
-                        height: "100%",
-                        backgroundColor: "#111",
-                        marginRight: "2px"
-                      }}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              <span>{booking.flight.to}</span>
+              <span>Source</span>
+              <span>✈</span>
+              <span>Destination</span>
             </div>
 
             <hr />
@@ -111,29 +136,10 @@ function TicketView() {
                 marginTop: "15px"
               }}
             >
-              <div>
-                <strong>Name</strong>
-                <div>{p.firstName} {p.lastName}</div>
-              </div>
-
-              <div>
-                <strong>Gender</strong>
-                <div>{p.gender}</div>
-              </div>
-
-              <div>
-                <strong>Meal</strong>
-                <div>{p.meal}</div>
-              </div>
-
-              <div>
-                <strong>Class</strong>
-                <div>
-                  {p.businessClass === "true"
-                    ? "Business"
-                    : "Non Business Class"}
-                </div>
-              </div>
+              <div><strong>Name</strong><div>{p.name}</div></div>
+              <div><strong>Gender</strong><div>{p.gender}</div></div>
+              <div><strong>Meal</strong><div>{p.mealType}</div></div>
+              <div><strong>Class</strong><div>{booking.isBusinessClass ? "Business" : "Economy"}</div></div>
             </div>
 
             <div
@@ -145,27 +151,33 @@ function TicketView() {
                 justifyContent: "space-between"
               }}
             >
-              <div>
-                <strong>Passenger ID</strong>
-                <div>{p.passenger_id}</div>
-              </div>
-
-              <div>
-                <strong>Price</strong>
-                <div>
-                  ₹{(booking.total_amount / booking.passengers.length).toLocaleString()}
-                </div>
-              </div>
+              <div><strong>Passenger ID</strong><div>{p.passengerId}</div></div>
+              <div><strong>Age</strong><div>{p.age}</div></div>
             </div>
           </div>
         </div>
       ))}
 
-      <h2>Total Paid: ₹{booking.total_amount.toLocaleString()}</h2>
+      {/* ── Only these buttons are new ── */}
+      <div style={{ display: "flex", justifyContent: "center", gap: "15px", marginTop: "30px" }}>
+        <button
+          onClick={handleDownload}
+          style={{ padding: "12px 25px", backgroundColor: "#28A745", color: "white", border: "none", borderRadius: "8px", fontWeight: "bold", cursor: "pointer" }}
+        >
+          ⬇ Download Ticket
+        </button>
 
-      <p style={{ marginTop: "30px", fontStyle: "italic" }}>
-        Have a safe flight and a wonderful journey ahead ✈
-      </p>
+        {booking.status !== "CANCELLED" && (
+          <button
+            onClick={handleCancel}
+            style={{ padding: "12px 25px", backgroundColor: "#DC3545", color: "white", border: "none", borderRadius: "8px", fontWeight: "bold", cursor: "pointer" }}
+          >
+            ✕ Cancel Booking
+          </button>
+        )}
+      </div>
+
+      <p style={{ marginTop: "30px", fontStyle: "italic" }}>Have a safe flight ✈</p>
     </div>
   );
 }

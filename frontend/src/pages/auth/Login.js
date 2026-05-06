@@ -13,15 +13,16 @@ const Login = () => {
   try {
     const response = await authService.userLogin({ email, password });
 
-    console.log("Response data:", response.data); // check console after login
+    console.log("Response data:", response.data);
 
-    const roles = response.data.roles;            // ["ADMIN"]
-    const role = Array.isArray(roles) ? roles[0] : roles; // "ADMIN"
+    const roles = response.data.roles;        
+    const role = Array.isArray(roles) ? roles[0] : roles;
 
     localStorage.setItem("token", response.data.token);
     localStorage.setItem("role", role);
+    localStorage.setItem("userEmail", email);
 
-    console.log("Role:", role); // should print ADMIN
+    console.log("Role:", role);
 
     if (role === "ADMIN") {
       navigate("/admin/dashboard");
