@@ -11,13 +11,16 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.flightapp.ticket_service.entity.Booking;
 import com.flightapp.ticket_service.service.TicketService;
 
 import jakarta.validation.Valid;
-@CrossOrigin(origins="*")
+
+@CrossOrigin(origins = "*", allowedHeaders = "*", methods = { RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT,
+		RequestMethod.PATCH, RequestMethod.DELETE, RequestMethod.OPTIONS })
 @RestController
 @RequestMapping("/api/v1.0/flight")
 public class TicketController {
@@ -41,9 +44,10 @@ public class TicketController {
 		ticketService.cancelTicketByPnr(pnr);
 		return ResponseEntity.ok("Ticket cancelled Successfully");
 	}
+
 	@GetMapping("/booking/history/{userId}")
-	public ResponseEntity<List<Booking>> getBookingHistoryByUserId(@PathVariable Long userId){
-		List<Booking> bookings=ticketService.getBookingHistoryByUserId(userId);
+	public ResponseEntity<List<Booking>> getBookingHistoryByUserId(@PathVariable Long userId) {
+		List<Booking> bookings = ticketService.getBookingHistoryByUserId(userId);
 		return ResponseEntity.ok(bookings);
 	}
 }
