@@ -31,9 +31,9 @@ public class TicketController {
 	}
 
 	@PostMapping("/booking/{flightId}")
-	public ResponseEntity<Long> bookTicket(@PathVariable Long flightId, @Valid @RequestBody Booking booking) {
+	public ResponseEntity<String> bookTicket(@PathVariable Long flightId, @Valid @RequestBody Booking booking) {
 		Booking savedBooking = ticketService.bookTicket(flightId, booking);
-		return ResponseEntity.status(201).body(savedBooking.getBookingId());
+		return ResponseEntity.status(201).body(savedBooking.getPnr());
 	}
 
 	@PatchMapping("/booking/cancel/{pnr}")
