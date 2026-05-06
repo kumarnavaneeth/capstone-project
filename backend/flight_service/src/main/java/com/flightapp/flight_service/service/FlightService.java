@@ -65,11 +65,22 @@ public class FlightService {
     }
 
     public Flight addFlight(Flight flight) {
+
         if (flight.getStatus() == null) {
             flight.setStatus(FlightStatus.AVAILABLE);
         }
-        int availableSeats = flight.getBusinessClassSeats() + flight.getNonBusinessClassSeats();
-        flight.setAvailableSeats(availableSeats);        return flightRepository.save(flight);
+
+        int businessSeats = flight.getBusinessClassSeats();
+        int nonBusinessSeats = flight.getNonBusinessClassSeats();
+
+        if (businessSeats < 0 || nonBusinessSeats < 0) {
+            throw new RuntimeException("Seats cannot be negative");
+        }
+
+        int availableSeats = businessSeats + nonBusinessSeats;
+        flight.setAvailableSeats(availableSeats);
+
+        return flightRepository.save(flight);
     }
 
     public void updateFlightStatus(Long flightId, FlightStatus status) {
@@ -97,34 +108,41 @@ public class FlightService {
     }
 
     public Airline registerAirline(Airline airline) {
+
+        if (airline.getAirlineName() == null || airline.getAirlineName().trim().isEmpty()) {
+            throw new RuntimeException("Airline name is required");
+        }
         airline.setAirlineName(airline.getAirlineName().trim());
-
         airlineRepository.findByAirlineNameIgnoreCase(airline.getAirlineName())
-            .ifPresent(existing -> {
-                throw new RuntimeException("Airline already exists");
-            });
-
+                .ifPresent(existing -> {
+                    throw new RuntimeException("Airline already exists");
+                });
         if (airline.getStatus() == null) {
             airline.setStatus(AirlineStatus.ACTIVE);
         }
-
         return airlineRepository.save(airline);
     }
-    public void updateSeats(Long flightId,int seatChange,boolean isBusinessClass) {
-    	Flight flight=flightRepository.findById(flightId)
-    			.orElseThrow(()->new RuntimeException("flight not found for seat update"));
-    	if(isBusinessClass) {
-    		flight.setBusinessClassSeats(flight.getBusinessClassSeats()+seatChange);
-    	}
-    	else {
-    		flight.setNonBusinessClassSeats(flight.getNonBusinessClassSeats()+seatChange);
-    	}
-    	flight.setAvailableSeats(flight.getAvailableSeats()+seatChange);
-    	flightRepository.save(flight);
+    public void updateSeats(Long flightId, int seatChange, boolean isBusinessClass) {
+
+        Flight flight = flightRepository.findById(flightId)
+                .orElseThrow(() -> new RuntimeException("flight not found for seat update"));
+        if (isBusinessClass) {
+            flight.setBusinessClassSeats(flight.getBusinessClassSeats() + seatChange);
+        } else {
+            flight.setNonBusinessClassSeats(flight.getNonBusinessClassSeats() + seatChange);
+        }
+
+        flight.setAvailableSeats(flight.getAvailableSeats() + seatChange);
+
+        if (flight.getAvailableSeats() < 0) {
+            throw new RuntimeException("Available seats cannot be negative");
+        }
+
+        flightRepository.save(flight);
     }
-    
-	public Flight getFlightById(Long flightId) {
-		return flightRepository.findById(flightId).orElseThrow(() -> new RuntimeException("Flight not found"));
-	}
-	
+
+    public Flight getFlightById(Long flightId) {
+        return flightRepository.findById(flightId)
+                .orElseThrow(() -> new RuntimeException("Flight not found"));
+    }
 }
