@@ -36,7 +36,7 @@ public class FlightService {
 
         List<Flight> activeFlights = flights.stream()
                 .filter(flight -> airlineRepository
-                        .findByAirlineName(flight.getAirlineName())
+                        .findByAirlineNameIgnoreCase(flight.getAirlineName())
                         .map(airline -> airline.getStatus() == AirlineStatus.ACTIVE)
                         .orElse(false))
                 .collect(Collectors.toList());
@@ -97,9 +97,17 @@ public class FlightService {
     }
 
     public Airline registerAirline(Airline airline) {
+        airline.setAirlineName(airline.getAirlineName().trim());
+
+        airlineRepository.findByAirlineNameIgnoreCase(airline.getAirlineName())
+            .ifPresent(existing -> {
+                throw new RuntimeException("Airline already exists");
+            });
+
         if (airline.getStatus() == null) {
             airline.setStatus(AirlineStatus.ACTIVE);
         }
+
         return airlineRepository.save(airline);
     }
     public void updateSeats(Long flightId,int seatChange,boolean isBusinessClass) {
@@ -118,4 +126,5 @@ public class FlightService {
 	public Flight getFlightById(Long flightId) {
 		return flightRepository.findById(flightId).orElseThrow(() -> new RuntimeException("Flight not found"));
 	}
+	
 }

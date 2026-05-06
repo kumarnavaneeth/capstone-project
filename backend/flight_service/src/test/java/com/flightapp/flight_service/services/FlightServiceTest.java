@@ -104,7 +104,7 @@ public class FlightServiceTest {
                 request.getTravelDate(),
                 FlightStatus.AVAILABLE))
                 .thenReturn(List.of(flight));
-        when(airlineRepository.findByAirlineName("EMIRATES"))
+        when(airlineRepository.findByAirlineNameIgnoreCase("EMIRATES"))
                 .thenReturn(Optional.of(airline));
         assertThrows(RuntimeException.class,
                 () -> flightService.searchFlights(request));
