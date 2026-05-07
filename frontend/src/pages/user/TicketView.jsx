@@ -1,166 +1,248 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Plane, MapPin, Calendar, Search, AlertCircle } from "lucide-react";
-import { airports } from "../../data/airports";
+import React, { useEffect, useState, useRef } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { CheckCircle2, Download, XCircle, Plane, User, Calendar, Ticket, Info, Printer } from "lucide-react";
+import { useReactToPrint } from "react-to-print";
+import Barcode from "react-barcode";
+import toast from "react-hot-toast";
+import bookingService from "../../services/bookingService";
 import flightService from "../../services/flightService";
 
-function SearchFlights() {
-  const navigate = useNavigate();
-  const [source, setSource] = useState("");
-  const [destination, setDestination] = useState("");
-  const [date, setDate] = useState("");
-  const [loading, setLoading] = useState(false);
+function TicketView() {
+  const { pnr } = useParams();
+  const [booking, setBooking] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
+  const componentRef = useRef(null);
 
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    setError("");
+  useEffect(() => {
+    fetchBooking();
+  }, [pnr]);
 
-    if (!source || !destination || !date) {
-      setError("Please fill in all fields to search for flights.");
-      return;
-    }
-
-    setLoading(true);
+  const fetchBooking = async () => {
     try {
-      const response = await flightService.searchFlights({
-        source,
-        destination,
-        travelDate: date,
-      });
+      setLoading(true);
+      const res = await bookingService.getTicketByPnr(pnr);
+      
+      if (!res.data) {
+        setError("Ticket not found");
+        return;
+      }
 
-      navigate("/results", {
-        state: {
-          flights: response.data,
-          searchCriteria: { source, destination, date }
+      const bookingData = { ...res.data };
+      const flightId = bookingData.flightId || bookingData.flight_id;
+
+      if (flightId) {
+        try {
+          const flightRes = await flightService.getFlightById(flightId);
+          const flightData = flightRes.data;
+        
+          setBooking({
+            ...bookingData,
+            source: flightData.source || flightData.from,
+            destination: flightData.destination || flightData.to,
+            airline: flightData.airline,
+            flightNumber: flightData.flightNumber,
+            departureTime: flightData.departureTime,
+            arrivalTime: flightData.arrivalTime
+          });
+        } catch (flightErr) {
+          console.error("Failed to fetch flight details:", flightErr);
+          setBooking(bookingData);
         }
-      });
-    } catch (error) {
-      console.error("Search failed:", error);
-      setError("Failed to fetch flights. Please check your connection and try again.");
+      } else {
+        setBooking(bookingData);
+      }
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load ticket information. Please try again later.");
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="flex flex-col items-center justify-center py-12 lg:py-20">
-      <div className="w-full max-w-4xl space-y-8">
-        <div className="text-center space-y-4">
-          <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl text-primary">
-            Where to next?
-          </h1>
-          <p className="text-xl text-muted-foreground">
-            Find the best deals on flights to your favorite destinations.
-          </p>
-        </div>
+  const handlePrint = useReactToPrint({
+    contentRef: componentRef,
+  });
+  const handleCancel = async () => {
+    if (!window.confirm("Are you sure you want to cancel this booking?")) return;
+    try {
+      await bookingService.cancelBooking(booking.pnr);
+      toast.success("Booking cancelled successfully!");
+      fetchBooking();
+    } catch (err) {
+      console.error("Cancel error:", err);
+      toast.error(`Failed to cancel booking: ${err.response?.data?.message || err.message}`);
+    }
+  };
 
-        <div className="bg-card border rounded-2xl shadow-xl p-6 md:p-10">
-          {error && (
-            <div className="mb-6 flex items-center gap-2 p-4 text-sm font-medium text-destructive bg-destructive/10 rounded-lg">
-              <AlertCircle className="h-5 w-5" />
-              <span>{error}</span>
+  if (loading) return (
+    <div className="flex flex-col items-center justify-center py-20">
+      <div className="h-12 w-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+      <p className="text-lg font-medium text-muted-foreground">Retrieving your ticket...</p>
+    </div>
+  );
+
+  if (error || !booking) return (
+    <div className="flex flex-col items-center justify-center py-20">
+      <XCircle className="h-12 w-12 text-destructive mb-4" />
+      <p className="text-xl font-bold text-foreground">{error || "Ticket not found"}</p>
+      <button onClick={() => navigate("/")} className="mt-4 text-primary hover:underline">Return to Search</button>
+    </div>
+  );
+
+  const isCancelled = booking.status === "CANCELLED";
+
+  return (
+    <div className="max-w-3xl mx-auto py-10 px-4 space-y-8">
+      <div className="text-center space-y-2">
+        <div className="flex justify-center mb-4">
+          {isCancelled ? (
+            <div className="p-3 rounded-full bg-destructive/10">
+              <XCircle className="h-8 w-8 text-destructive" />
+            </div>
+          ) : (
+            <div className="p-3 rounded-full bg-green-500/10">
+              <CheckCircle2 className="h-8 w-8 text-green-500" />
             </div>
           )}
-
-          <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="space-y-2">
-              <label className="text-sm font-semibold flex items-center gap-2 text-muted-foreground">
-                <MapPin className="h-4 w-4" /> From
-              </label>
-              <select 
-                value={source} 
-                onChange={(e) => setSource(e.target.value)} 
-                className="flex h-12 w-full rounded-lg border border-input bg-background px-4 py-2 text-base ring-offset-background focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-              >
-                <option value="">Select Origin</option>
-                {airports.map((a, i) => (
-                  <option key={i} value={a.code}>
-                    {a.city} ({a.code})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-semibold flex items-center gap-2 text-muted-foreground">
-                <MapPin className="h-4 w-4 text-primary" /> To
-              </label>
-              <select 
-                value={destination} 
-                onChange={(e) => setDestination(e.target.value)} 
-                className="flex h-12 w-full rounded-lg border border-input bg-background px-4 py-2 text-base ring-offset-background focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-              >
-                <option value="">Select Destination</option>
-                {airports
-                  .filter((a) => a.code !== source)
-                  .map((a, i) => (
-                    <option key={i} value={a.code}>
-                      {a.city} ({a.code})
-                    </option>
-                  ))}
-              </select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-semibold flex items-center gap-2 text-muted-foreground">
-                <Calendar className="h-4 w-4" /> Departure Date
-              </label>
-              <input
-                type="date"
-                className="flex h-12 w-full rounded-lg border border-input bg-background px-4 py-2 text-base ring-offset-background focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                value={date}
-                min={new Date().toISOString().split("T")[0]}
-                onChange={(e) => setDate(e.target.value)}
-              />
-            </div>
-
-            <div className="md:col-span-3 pt-4">
-              <button 
-                type="submit" 
-                disabled={loading} 
-                className="w-full inline-flex items-center justify-center rounded-lg bg-primary px-8 py-4 text-lg font-bold text-primary-foreground shadow-lg transition-all hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
-              >
-                {loading ? (
-                  <span className="flex items-center gap-2">
-                    <Search className="h-5 w-5 animate-spin" /> Searching...
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-2">
-                    <Search className="h-5 w-5" /> Search Flights
-                  </span>
-                )}
-              </button>
-            </div>
-          </form>
         </div>
+        <h1 className="text-3xl font-bold tracking-tight text-primary">
+          {isCancelled ? "Booking Cancelled" : "Booking Confirmed"}
+        </h1>
+        <p className="text-muted-foreground">
+          {isCancelled 
+            ? "Your booking has been cancelled. Refund processing might take 5-7 business days." 
+            : "Thank you for booking with us. Your journey begins here!"}
+        </p>
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-12">
-          <div className="flex flex-col items-center text-center space-y-3 p-6 rounded-2xl bg-muted/30 border border-transparent hover:border-primary/20 transition-all">
-            <div className="p-3 rounded-full bg-primary/10">
-              <Plane className="h-6 w-6 text-primary" />
-            </div>
-            <h3 className="font-bold">Wide Selection</h3>
-            <p className="text-sm text-muted-foreground">Compare flights from hundreds of airlines worldwide.</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-card border rounded-2xl p-6 shadow-sm flex items-center gap-4">
+          <div className="p-3 rounded-xl bg-muted">
+            <Ticket className="h-6 w-6 text-primary" />
           </div>
-          <div className="flex flex-col items-center text-center space-y-3 p-6 rounded-2xl bg-muted/30 border border-transparent hover:border-primary/20 transition-all">
-            <div className="p-3 rounded-full bg-primary/10">
-              <MapPin className="h-6 w-6 text-primary" />
-            </div>
-            <h3 className="font-bold">Direct Routes</h3>
-            <p className="text-sm text-muted-foreground">Find the fastest connections to your target city.</p>
+          <div>
+            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">PNR Number</p>
+            <p className="text-2xl font-black tabular-nums">{booking.pnr}</p>
           </div>
-          <div className="flex flex-col items-center text-center space-y-3 p-6 rounded-2xl bg-muted/30 border border-transparent hover:border-primary/20 transition-all">
-            <div className="p-3 rounded-full bg-primary/10">
-              <Calendar className="h-6 w-6 text-primary" />
-            </div>
-            <h3 className="font-bold">Flexible Dates</h3>
-            <p className="text-sm text-muted-foreground">Easily adjust your travel plans with our simple search.</p>
+        </div>
+        <div className="bg-card border rounded-2xl p-6 shadow-sm flex items-center gap-4">
+          <div className="p-3 rounded-xl bg-muted">
+            <Info className="h-6 w-6 text-primary" />
+          </div>
+          <div>
+            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Status</p>
+            <p className={`text-xl font-bold ${isCancelled ? "text-destructive" : "text-green-500"}`}>
+              {booking.status}
+            </p>
           </div>
         </div>
       </div>
+
+      <div className="space-y-4" ref={componentRef}>
+        <h3 className="text-xl font-bold flex items-center gap-2">
+          <User className="h-5 w-5 text-primary" /> Passenger Tickets
+        </h3>
+        {booking.passengers?.map((p, index) => (
+          <div
+            key={index}
+            className={`relative overflow-hidden bg-card border rounded-2xl shadow-md transition-all ${isCancelled ? "opacity-70 grayscale-[0.5] border-destructive/20" : ""}`}
+          >
+            <div className="flex flex-col md:flex-row">
+              <div className={`md:w-32 flex items-center justify-center font-black text-white p-4 md:p-0 ${booking.isBusinessClass ? "bg-amber-500" : "bg-primary"}`}>
+                <span className="md:-rotate-90 md:whitespace-nowrap">
+                  {booking.isBusinessClass ? "BUSINESS" : "ECONOMY"}
+                </span>
+              </div>
+
+              <div className="flex-1 p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <div className="text-left">
+                    <p className="text-xs font-bold text-muted-foreground">FROM</p>
+                    <p className="text-xl font-black">{booking.source || "N/A"}</p>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <Plane className="h-5 w-5 text-primary mb-1 rotate-90" />
+                    <div className="w-20 h-px bg-muted"></div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs font-bold text-muted-foreground">TO</p>
+                    <p className="text-xl font-black">{booking.destination || "N/A"}</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-dashed">
+                  <div>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase">Passenger</p>
+                    <p className="font-bold text-sm">{p.name}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase">Gender</p>
+                    <p className="font-bold text-sm">{p.gender}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase">Meal</p>
+                    <p className="font-bold text-sm">{p.mealType}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase">Age</p>
+                    <p className="font-bold text-sm">{p.age}</p>
+                  </div>
+                </div>
+
+                <div className="mt-4 flex justify-center border-t border-dashed pt-4">
+                  <Barcode 
+                    value={`${booking.pnr}-${p.name}`} 
+                    width={1.5} 
+                    height={50} 
+                    fontSize={12} 
+                    background="transparent"
+                  />
+                </div>
+              </div>
+            </div>
+            {isCancelled && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="border-4 border-destructive text-destructive text-4xl font-black px-6 py-2 rotate-[-15deg] opacity-40">
+                  CANCELLED
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div className="flex flex-col sm:flex-row justify-center gap-4 pt-6">
+        <button
+          onClick={() => handlePrint()}
+          className="inline-flex items-center justify-center rounded-xl bg-green-600 px-6 py-3 text-sm font-bold text-white shadow-lg transition-all hover:bg-green-700 active:scale-95"
+        >
+          <Printer className="mr-2 h-4 w-4" /> Print Ticket
+        </button>
+
+        {!isCancelled && (
+          <button
+            onClick={handleCancel}
+            className="inline-flex items-center justify-center rounded-xl bg-destructive px-6 py-3 text-sm font-bold text-white shadow-lg transition-all hover:bg-destructive/90 active:scale-95"
+          >
+            <XCircle className="mr-2 h-4 w-4" /> Cancel Booking
+          </button>
+        )}
+
+        <button
+          onClick={() => navigate("/")}
+          className="inline-flex items-center justify-center rounded-xl border border-input bg-background px-6 py-3 text-sm font-bold shadow-sm transition-all hover:bg-accent hover:text-accent-foreground active:scale-95"
+        >
+          Book Another
+        </button>
+      </div>
+
+      <p className="text-center text-sm font-medium italic text-muted-foreground">
+        Wish you a safe and pleasant flight ✈
+      </p>
     </div>
   );
 }
 
-export default SearchFlights;
+export default TicketView;
