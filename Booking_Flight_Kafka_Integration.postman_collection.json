@@ -1,0 +1,577 @@
+{
+  "info": {
+    "_postman_id": "booking-flight-kafka-integration",
+    "name": "Booking & Flight Services - Kafka Integration Testing",
+    "description": "Complete test collection for booking and flight services with Kafka messaging integration. The booking service publishes events to Kafka which the flight service consumes to update seat availability.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Setup & Prerequisites",
+      "item": [
+        {
+          "name": "README - Before You Start",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "https://example.com",
+              "protocol": "https",
+              "host": ["example", "com"]
+            },
+            "description": "## Prerequisites for Kafka Integration Testing\n\n### Required Services:\n1. **Kafka Broker** - Running on `localhost:9092`\n2. **Booking Service** - Running on port 8080\n   - Endpoint: `http://localhost:8080/api/version1/bookings`\n   - Has Kafka producer (publishes to 'booking-updates' topic)\n\n3. **Flight Service** - Running on port 8081\n   - Endpoint: `http://localhost:8081/api/v1.0/flight`\n   - Has Kafka consumer (listens to 'booking-updates' topic, updates seat counts)\n\n4. **API Gateway** - Running on port 8080 (optional, for proxy access)\n   - Routes requests to backend services\n\n### What This Collection Tests:\n- Creating bookings which trigger Kafka events\n- Verifying flight seat updates via Kafka messages\n- Searching flights and checking available seats\n- Testing both economy and business class bookings\n\n### Expected Kafka Flow:\n1. User creates booking via `/api/version1/bookings` (Booking Service)\n2. Booking Service publishes `BookingEvent` to `booking-updates` topic\n3. Flight Service consumes the event from Kafka\n4. Flight Service updates flight seat counts based on booking\n5. Next flight search shows reduced available seats\n\n### Troubleshooting:\n- **No seat updates**: Check Kafka is running and topics are created\n- **Connection errors**: Verify service URLs and ports\n- **Auth failures**: Some endpoints require valid JWT token\n"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Flight Service - Setup",
+      "item": [
+        {
+          "name": "1. Register Airline",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201 || pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set('airlineId', jsonData.id);",
+                  "    console.log('Airline registered with ID: ' + jsonData.id);",
+                  "} else {",
+                  "    console.log('Failed to register airline');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"airlineName\": \"IndiGo Airways\",\n  \"contact\": \"9876543210\",\n  \"headquarters\": \"Bangalore\",\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8081/api/v1.0/flight/airline/register",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8081",
+              "path": ["api", "v1.0", "flight", "airline", "register"]
+            },
+            "description": "Register an airline in the system. Save the airline ID for later use."
+          },
+          "response": []
+        },
+        {
+          "name": "2. Add Flight",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201 || pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set('flightId', jsonData.id);",
+                  "    pm.environment.set('initialEconomySeats', jsonData.totalEconomySeats);",
+                  "    pm.environment.set('initialBusinessSeats', jsonData.totalBusinessSeats);",
+                  "    console.log('Flight created with ID: ' + jsonData.id);",
+                  "    console.log('Initial Economy Seats: ' + jsonData.totalEconomySeats);",
+                  "    console.log('Initial Business Seats: ' + jsonData.totalBusinessSeats);",
+                  "} else {",
+                  "    console.log('Failed to create flight: ' + pm.response.code);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"flightNumber\": \"6E501\",\n  \"source\": \"Mumbai\",\n  \"destination\": \"Bangalore\",\n  \"travelDate\": \"2026-06-15\",\n  \"aircraftType\": \"Airbus A320\",\n  \"totalEconomySeats\": 150,\n  \"totalBusinessSeats\": 30,\n  \"airlineId\": 1,\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8081/api/v1.0/flight",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8081",
+              "path": ["api", "v1.0", "flight"]
+            },
+            "description": "Create a new flight. The flight ID and initial seat counts are saved for comparison.\n\nAircraft Types: Airbus A320, Boeing 787, Airbus A350, etc.\nNote the initial seat counts to verify Kafka updates later!"
+          },
+          "response": []
+        },
+        {
+          "name": "3. Search Flights (Before Bookings)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    console.log('Found ' + jsonData.length + ' flights');",
+                  "    if (jsonData.length > 0) {",
+                  "        console.log('First flight economy seats: ' + jsonData[0].totalEconomySeats);",
+                  "        console.log('First flight business seats: ' + jsonData[0].totalBusinessSeats);",
+                  "    }",
+                  "} else {",
+                  "    console.log('Search failed');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"source\": \"Mumbai\",\n  \"destination\": \"Bangalore\",\n  \"travelDate\": \"2026-06-15\",\n  \"travellers\": 2\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8081/api/v1.0/flight/search",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8081",
+              "path": ["api", "v1.0", "flight", "search"]
+            },
+            "description": "Search for available flights on the Mumbai→Bangalore route. Note the available seat counts."
+          },
+          "response": []
+        },
+        {
+          "name": "4. Get Flight Details (Before Bookings)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set('beforeBookingEconomy', jsonData.totalEconomySeats);",
+                  "    pm.environment.set('beforeBookingBusiness', jsonData.totalBusinessSeats);",
+                  "    console.log('--- BEFORE BOOKING ---');",
+                  "    console.log('Economy Seats: ' + jsonData.totalEconomySeats);",
+                  "    console.log('Business Seats: ' + jsonData.totalBusinessSeats);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8081/api/v1.0/flight/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8081",
+              "path": ["api", "v1.0", "flight", "1"]
+            },
+            "description": "Get detailed flight information. This shows current seat availability. Run this BEFORE creating bookings to establish a baseline."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Booking Service - Create Bookings (Triggers Kafka)",
+      "item": [
+        {
+          "name": "Health Check - Booking Service",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/version1/bookings/status",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "version1", "bookings", "status"]
+            },
+            "description": "Verify booking service is running"
+          },
+          "response": []
+        },
+        {
+          "name": "🔥 Booking #1 - Economy (2 passengers)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    console.log('✓ Booking created successfully');",
+                  "    console.log('Response: ' + pm.response.text());",
+                  "    console.log('⚠️ Kafka event should be published now!');",
+                  "    console.log('Flight service should receive the update...');",
+                  "} else {",
+                  "    console.log('✗ Booking failed with code: ' + pm.response.code);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 101,\n  \"flightId\": 1,\n  \"passengerCount\": 2,\n  \"isBusinessClass\": false\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/version1/bookings",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "version1", "bookings"]
+            },
+            "description": "**THIS TRIGGERS A KAFKA EVENT!**\n\nCreate a booking for 2 economy passengers on flight 1. The booking service will:\n1. Receive this request\n2. Create a BookingEvent\n3. Publish to Kafka 'booking-updates' topic\n4. Flight service consumes and updates seats\n\nExpected: Economy seats reduced by 2"
+          },
+          "response": []
+        },
+        {
+          "name": "🔥 Booking #2 - Business (1 passenger)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    console.log('✓ Business booking created');",
+                  "    console.log('Kafka event published - flight business seats should decrease');",
+                  "} else {",
+                  "    console.log('✗ Failed: ' + pm.response.code);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 102,\n  \"flightId\": 1,\n  \"passengerCount\": 1,\n  \"isBusinessClass\": true\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/version1/bookings",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "version1", "bookings"]
+            },
+            "description": "**THIS TRIGGERS A KAFKA EVENT!**\n\nCreate a booking for 1 business class passenger. After this:\n- Business seats should be reduced by 1\n- If Kafka is working: previous flight now has 1 fewer business seat"
+          },
+          "response": []
+        },
+        {
+          "name": "🔥 Booking #3 - Economy (5 passengers)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    console.log('✓ Large economy booking created');",
+                  "    console.log('Significant seat reduction - check flight 1 details next');",
+                  "} else {",
+                  "    console.log('✗ Failed: ' + pm.response.code);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 103,\n  \"flightId\": 1,\n  \"passengerCount\": 5,\n  \"isBusinessClass\": false\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/version1/bookings",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "version1", "bookings"]
+            },
+            "description": "**THIS TRIGGERS A KAFKA EVENT!**\n\nCreate a booking for 5 economy passengers. After this booking:\n- Total economy reduction: 2 + 5 = 7 passengers\n- Flight should have 7 fewer economy seats"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Verify Kafka Integration",
+      "item": [
+        {
+          "name": "Wait 2-3 seconds then Check Flight Details",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var before_econ = parseInt(pm.environment.get('beforeBookingEconomy')) || 0;",
+                  "var before_biz = parseInt(pm.environment.get('beforeBookingBusiness')) || 0;",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    var after_econ = jsonData.totalEconomySeats;",
+                  "    var after_biz = jsonData.totalBusinessSeats;",
+                  "    ",
+                  "    console.log('=== KAFKA INTEGRATION VERIFICATION ===');",
+                  "    console.log('');",
+                  "    console.log('ECONOMY SEATS:');",
+                  "    console.log('  Before: ' + before_econ);",
+                  "    console.log('  After:  ' + after_econ);",
+                  "    console.log('  Reduced by: ' + (before_econ - after_econ) + ' (Expected: 7)');",
+                  "    console.log('');",
+                  "    console.log('BUSINESS SEATS:');",
+                  "    console.log('  Before: ' + before_biz);",
+                  "    console.log('  After:  ' + after_biz);",
+                  "    console.log('  Reduced by: ' + (before_biz - after_biz) + ' (Expected: 1)');",
+                  "    console.log('');",
+                  "    ",
+                  "    if ( (before_econ - after_econ) === 7 && (before_biz - after_biz) === 1) {",
+                  "        console.log('✅ SUCCESS! Kafka integration is WORKING!');",
+                  "        pm.test('Kafka event consumption verified', function () {",
+                  "            pm.expect(true).to.be.true;",
+                  "        });",
+                  "    } else {",
+                  "        console.log('⚠️  Seats did not change as expected.');",
+                  "        console.log('Check if: Kafka is running, services are connected, time elapsed for processing');",
+                  "    }",
+                  "} else {",
+                  "    console.log('✗ Failed to get flight details');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8081/api/v1.0/flight/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8081",
+              "path": ["api", "v1.0", "flight", "1"]
+            },
+            "description": "GET the flight again to verify seats have been updated via Kafka.\n\n**CRITICAL TEST:** If seats have been reduced by the correct amounts (7 economy, 1 business), then Kafka integration is WORKING!\n\nIf seats haven't changed:\n1. Verify Kafka broker is running on localhost:9092\n2. Check both services are running\n3. Review service logs for errors\n4. Verify 'booking-updates' topic exists in Kafka"
+          },
+          "response": []
+        },
+        {
+          "name": "Search Flights (After Bookings)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"source\": \"Mumbai\",\n  \"destination\": \"Bangalore\",\n  \"travelDate\": \"2026-06-15\",\n  \"travellers\": 6\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8081/api/v1.0/flight/search",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8081",
+              "path": ["api", "v1.0", "flight", "search"]
+            },
+            "description": "Search for flights again. Compare with the first search (step 3). If seats decreased, Kafka worked!"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Advanced Testing",
+      "item": [
+        {
+          "name": "Booking with Different Flight",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 104,\n  \"flightId\": 2,\n  \"passengerCount\": 3,\n  \"isBusinessClass\": false\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/version1/bookings",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "version1", "bookings"]
+            },
+            "description": "Book on a different flight ID (adjust flightId as needed). Then check that flight's seat counts to verify Kafka routing is working correctly."
+          },
+          "response": []
+        },
+        {
+          "name": "Add Another Flight",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"flightNumber\": \"6E502\",\n  \"source\": \"Delhi\",\n  \"destination\": \"Mumbai\",\n  \"travelDate\": \"2026-06-16\",\n  \"aircraftType\": \"Boeing 787\",\n  \"totalEconomySeats\": 200,\n  \"totalBusinessSeats\": 50,\n  \"airlineId\": 1,\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8081/api/v1.0/flight",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8081",
+              "path": ["api", "v1.0", "flight"]
+            },
+            "description": "Create a second flight for comprehensive testing across multiple flights."
+          },
+          "response": []
+        },
+        {
+          "name": "Search Multiple Routes",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"source\": \"Delhi\",\n  \"destination\": \"Mumbai\",\n  \"travelDate\": \"2026-06-16\",\n  \"travellers\": 4\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8081/api/v1.0/flight/search",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8081",
+              "path": ["api", "v1.0", "flight", "search"]
+            },
+            "description": "Search on different route to verify all flights are being tracked independently."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Debugging & Monitoring",
+      "item": [
+        {
+          "name": "View Kafka Topics (Linux/Mac)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "https://example.com",
+              "protocol": "https",
+              "host": ["example", "com"]
+            },
+            "description": "To view Kafka topics and messages, run these commands in your terminal:\n\n```bash\n# List all topics\nkafka-topics --list --bootstrap-server localhost:9092\n\n# Describe the booking-updates topic\nkafka-topics --describe --topic booking-updates --bootstrap-server localhost:9092\n\n# Monitor messages in real-time\nkafka-console-consumer --topic booking-updates --from-beginning --bootstrap-server localhost:9092\n```\n\nYou should see BookingEvent messages with flightId, passengerCount, and isBusinessClass."
+          },
+          "response": []
+        },
+        {
+          "name": "Booking Service Logs Check",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "https://example.com",
+              "protocol": "https",
+              "host": ["example", "com"]
+            },
+            "description": "Check booking service logs for:\n\n1. **Kafka Connection**: Look for messages like \"Kafka producer configured\" or connection errors\n2. **Event Publishing**: Look for \"Booking event sent to Kafka\"\n3. **Errors**: Any socket or serialization errors\n\nCommon issues:\n- `Connection refused on 127.0.0.1:9092` → Kafka not running\n- `Topic 'booking-updates' not found` → Topic needs to be created\n- `Serialization error` → Message format mismatch"
+          },
+          "response": []
+        },
+        {
+          "name": "Flight Service Logs Check",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "https://example.com",
+              "protocol": "https",
+              "host": ["example", "com"]
+            },
+            "description": "Check flight service logs for:\n\n1. **Kafka Connection**: \"Spring Kafka consumer configured\"\n2. **Message Consumption**: \"Received message from booking-updates topic\"\n3. **Seat Updates**: SQL update statements showing seat count changes\n4. **Errors**: Any JSON deserialization issues\n\nLook for patterns like:\n```\n[FlightService] Received booking event: flightId=1, passengerCount=2, isBusinessClass=false\n[FlightService] Updating flight 1 seats: economy -2\n```"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "airlineId",
+      "value": "1"
+    },
+    {
+      "key": "flightId",
+      "value": "1"
+    },
+    {
+      "key": "initialEconomySeats",
+      "value": "150"
+    },
+    {
+      "key": "initialBusinessSeats",
+      "value": "30"
+    },
+    {
+      "key": "beforeBookingEconomy",
+      "value": ""
+    },
+    {
+      "key": "beforeBookingBusiness",
+      "value": ""
+    }
+  ]
+}

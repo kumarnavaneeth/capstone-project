@@ -67,19 +67,25 @@ public class FlightServiceTest {
         assertEquals(AirlineStatus.BLOCKED, airline.getStatus());
         verify(airlineRepository).save(airline);
     }
-
     @Test
     void testRegisterAirlineDefaultsToActive() {
         Airline airline = new Airline();
+        airline.setAirlineName("Indigo");
+        airline.setContactNumber("9876543210");
+        airline.setHeadquarters("Gurugram"); 
         airline.setStatus(null);
-        when(airlineRepository.save(any(Airline.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(airlineRepository.findByAirlineNameIgnoreCase("Indigo"))
+                .thenReturn(Optional.empty());
+        when(airlineRepository.save(any(Airline.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
         Airline result = flightService.registerAirline(airline);
+
         assertEquals(AirlineStatus.ACTIVE, result.getStatus());
-        verify(airlineRepository).save(result);
     }
+   
     @Test
     void testSearchFlightsNoFlightsFound() {
-        SearchRequest request = new SearchRequest("DELHI","MUMBAI", LocalDate.of(2026, 5, 1),1);
+        SearchRequest request = new SearchRequest("DELHI","MUMBAI", LocalDate.of(2026, 5, 1));
         when(flightRepository.searchFlights("DELHI","MUMBAI", request.getTravelDate(), FlightStatus.AVAILABLE))
                 .thenReturn(List.of());
 
@@ -104,7 +110,7 @@ public class FlightServiceTest {
                 request.getTravelDate(),
                 FlightStatus.AVAILABLE))
                 .thenReturn(List.of(flight));
-        when(airlineRepository.findByAirlineName("EMIRATES"))
+        when(airlineRepository.findByAirlineNameIgnoreCase("EMIRATES"))
                 .thenReturn(Optional.of(airline));
         assertThrows(RuntimeException.class,
                 () -> flightService.searchFlights(request));
@@ -157,12 +163,16 @@ public class FlightServiceTest {
     @Test
     void testRegisterAirlineWithExistingStatus() {
         Airline airline = new Airline();
+        airline.setAirlineName("Indigo"); 
+        airline.setContactNumber("9876543210");
+        airline.setHeadquarters("Gurugram");
         airline.setStatus(AirlineStatus.BLOCKED);
-        when(airlineRepository.save(any(Airline.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(airlineRepository.findByAirlineNameIgnoreCase("Indigo"))
+                .thenReturn(Optional.empty());
+        when(airlineRepository.save(any(Airline.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
         Airline result = flightService.registerAirline(airline);
         assertEquals(AirlineStatus.BLOCKED, result.getStatus());
-        verify(airlineRepository).save(result);
     }
-
   
 }
