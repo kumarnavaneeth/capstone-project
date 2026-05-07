@@ -14,6 +14,10 @@ const authService = {
     localStorage.removeItem("token");
     localStorage.removeItem("roles");
     localStorage.removeItem("userEmail");
+<<<<<<< HEAD
+    localStorage.removeItem("userId");
+=======
+>>>>>>> 8250be5b2e4aabc54431c3e9d8d005fed36d660e
   },
 };
 
