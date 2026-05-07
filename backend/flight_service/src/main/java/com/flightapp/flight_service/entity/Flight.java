@@ -55,12 +55,9 @@ public class Flight {
 
     private LocalDateTime departureTime;
     private LocalDateTime arrivalTime;
-    private int duration; // In Minutes
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private int availableSeats;
     private float ticketPrice;
-    private String mealOption;
-    private String scheduleDays;
 
     @NotBlank(message = "{aircraft.type.required}")
     @Pattern(
