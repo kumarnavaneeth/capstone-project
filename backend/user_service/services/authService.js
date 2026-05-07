@@ -18,7 +18,7 @@ exports.login = async ({ email, password }) => {
   }
     const roles = user.roles.map(role => role.role_name);
     const token = generateToken({ ...user.toJSON(), roles });
-    return { token, roles };
+    return { token, roles, userId:user.user_id };
   };
 //register
 exports.register = async ({
@@ -74,5 +74,5 @@ exports.register = async ({
         console.log("UserRole created");
     }
 
-  return {sucess: true};
+  return {success: true};
 };
