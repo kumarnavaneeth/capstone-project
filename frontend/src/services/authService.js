@@ -8,11 +8,13 @@ const authService = {
     api.post("/user/login", data),
 
   adminLogin: (data) =>
-    api.post("user/admin/login", data),
+    api.post("/user/admin/login", data),
 
   logout: () => {
     localStorage.removeItem("token");
-    localStorage.removeItem("role");
+    localStorage.removeItem("roles");
+    localStorage.removeItem("userEmail");
+    localStorage.removeItem("userId");
   },
 };
 
